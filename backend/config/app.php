@@ -99,6 +99,14 @@ return [
 
     'key' => env('APP_KEY'),
 
+    'providers' => [
+        Aws\Laravel\AwsServiceProvider::class,
+    ],
+
+    'aliases' => [
+        'AWS' => Aws\Laravel\AwsFacade::class,
+    ],
+
     'previous_keys' => [
         ...array_filter(
             explode(',', env('APP_PREVIOUS_KEYS', ''))
