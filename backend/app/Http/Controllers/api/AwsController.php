@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Aws\Bedrock\BedrockClient;
 use App\Models\Pdf;
 use Smalot\PdfParser\Parser;
+use App\Models\User;
 
 use Aws\BedrockRuntime\BedrockRuntimeClient;
 
@@ -298,12 +299,15 @@ class AwsController extends Controller
                 ], 500);
             }
 
-            // update user xp count
-            $user = auth()->user();
+            // ufind the user by id 1
+            $user = User::find(1);
 
             // calculate xp based on the grade
             $xp = $decodedContent["grade"] * 1;
             $user->xp += $xp;
+
+
+            $user->save();
 
 
 
@@ -409,18 +413,19 @@ class AwsController extends Controller
                 ], 500);
             }
 
-            // update user xp count
-            $user = auth()->user();
+            // ufind the user by id 1
+            $user = User::find(1);
 
-            // calculate xp based on the grade
-            $xp = 0;
-            foreach ($results as $result) {
-                if ($result['isCorrect']) {
-                    $xp += 10;
-                }
-            }
+            // calculate xp based on the amount of correct guesses
+            $numberOfCorrectGuesses = count(array_filter($results, function ($result) {
+                return $result['isCorrect'];
+            }));
+
+            $xp = $numberOfCorrectGuesses * 1;
 
             $user->xp += $xp;
+            // save the xp
+            $user->save();
 
             return response()->json([
                 'success' => true,
