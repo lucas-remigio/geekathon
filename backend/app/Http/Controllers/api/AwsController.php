@@ -18,8 +18,77 @@ class AwsController extends Controller
         // Constructor method, called when a new instance is created
         $this->client = new BedrockRuntimeClient([
             'version' => 'latest',
-            'region' => env("AWS_DEFAULT_REGION")
+            'region' => env("AWS_DEFAULT_REGION"),
+            'http' => [
+            'verify' => false, // Desativa a verificação do certificado SSL
+            ],
         ]);
+    }
+
+    public function generateSummaries(Request $request)
+    {
+        $request->headers->set('Accept', 'application/json');
+
+        // Validate the incoming request
+        $validated = $request->validate([
+            'prompt' => 'required|string',
+            'number' => 'required|integer',
+        ]);
+
+        switch($validated['number']) {
+            case 1:
+                $promptFilePath = base_path('resources/prompt100palavras.txt');
+                break;
+            case 2:
+                $promptFilePath = base_path('resources/promptbytopics.txt');
+                break;
+            case 3:
+                $promptFilePath = base_path('resources/promptextended.txt');
+                break;
+            case 4:
+                $promptFilePath = base_path('resources/promptbrainrot.txt');
+                break;
+            default:
+                return response()->json(['error' => 'Invalid prompt value'], 400);
+        }
+
+        if (!file_exists($promptFilePath)) {
+            return response()->json(['error' => 'Prompt file not found'], 404);
+        }
+
+        $prompt = file_get_contents($promptFilePath);
+
+        try {
+
+            // Call Amazon Bedrock for Llama model inference
+            $response = $this->client->invokeModel([
+                'modelId' => 'mistral.mistral-large-2402-v1:0', // Adjust to match your model ID
+                'body' => json_encode([
+                    'max_tokens' => 2048,
+                    'top_p' => 1,
+                    'stop' => [],
+                    'temperature' => 0.7,
+                    'messages' => [
+                        [
+                            'role' => 'user',
+                            'content' => $prompt // Use the validated input as the content
+                        ]
+                    ],
+                ]),
+                'accept' => 'application/json',
+                'contentType' => 'application/json',
+            ]);
+
+            $responseBody = json_decode($response['body'], true);
+
+            return response()->json($responseBody);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function generateTest(Request $request)

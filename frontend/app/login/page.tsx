@@ -25,7 +25,7 @@ import { ThemeToggle } from '@/components/theme-toggle';
 
 // Updated schema to include password
 const formSchema = z.object({
-  email: z.string().min(2, "Email must have at least 2 characters").max(50, "Email must be less than 50 characters"),
+  email: z.string().email("Please enter a valid email"),
   password: z.string().min(6, "Password must have at least 6 characters").max(50, "Password must be less than 50 characters"),
 });
 
@@ -45,7 +45,13 @@ export default function Login() {
   return (
     <div className="relative flex min-h-screen flex-col">
       <div className="themes-wrapper bg-background w-full h-full">
-        <div className="flex min-h-screen items-center justify-center">
+        <div className="flex min-h-screen items-center justify-center flex-col">
+          <div className="mb-6 text-center">
+            <h1 className="text-4xl font-bold text-primary">
+              SubjectsMate
+            </h1>
+            <p className="text-gray-500">Your Study Companion</p>
+          </div>
           <Card className="rounded-lg border bg-card text-card-foreground shadow-sm mx-auto w-full max-w-lg p-6">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
               <CardTitle className="text-3xl font-semibold">Login</CardTitle>
@@ -59,7 +65,7 @@ export default function Login() {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email</FormLabel>
+                        <FormLabel className="text-current">Email</FormLabel>
                         <FormControl>
                           <Input placeholder="Enter your email" {...field} />
                         </FormControl>
@@ -72,7 +78,7 @@ export default function Login() {
                     name="password"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Password</FormLabel>
+                        <FormLabel className="text-current">Password</FormLabel>
                         <FormControl>
                           <Input
                             type="password"
@@ -86,7 +92,7 @@ export default function Login() {
                   />
                   <div className="pt-4">
                     <Button type="submit" className="w-1/2 mx-auto block">
-                        Submit
+                      Submit
                     </Button>
                   </div>
                 </form>
