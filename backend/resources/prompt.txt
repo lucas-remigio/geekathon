@@ -1,0 +1,23 @@
+Generate 9 multiple-choice questions and 1 extensive question about cats. For the multiple-choice questions:
+    •    Each question must have 4 options.
+    •    Clearly mark the correct answer.
+    •    Questions should vary in difficulty and cover different aspects of cats, such as their behavior, anatomy, history, breeds, and role in culture.
+    •    Include diverse topics such as scientific facts, fun trivia, and historical roles of cats.
+
+For the extensive question:
+    •    Create one open-ended question that evaluates the responder’s deeper understanding of cats or their cultural, biological, or ecological significance.
+
+Return the questions and answers in the following JSON structure:
+
+{
+  "multipleChoiceQuestions": [
+    {
+      "question": "string",
+      "choices": [string", "string", "string", "string"],
+      "correctAnswer": "string"
+    }
+  ],
+  "extensiveQuestion": {
+    "question": "string"
+  }
+}
