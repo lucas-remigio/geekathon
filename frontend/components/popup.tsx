@@ -1,6 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Progress } from "@/components/ui/progress";
+import { ScrollArea } from "@/components/ui/scroll-area"
+
 
 interface PopUpProps {
     isOpen: boolean;
@@ -9,9 +12,42 @@ interface PopUpProps {
 
 const PopUp: React.FC<PopUpProps> = ({ isOpen, onClose }) => {
     const [text, setText] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [progress, setProgress] = useState(0);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+    useEffect(() => {
+        if (isOpen) {
+            generateSummaries(1);
+        }
+    }, [isOpen]);
+
+    useEffect(() => {
+        adjustTextareaHeight();
+    }, [text]);
+
+    useEffect(() => {
+        let interval: NodeJS.Timeout;
+        if (loading) {
+            interval = setInterval(() => {
+                setProgress(prev => (prev >= 100 ? 0 : prev + 1));
+            }, 75);
+        } else {
+            setProgress(0);
+        }
+        return () => clearInterval(interval);
+    }, [loading]);
+
+    const adjustTextareaHeight = () => {
+        if (textareaRef.current) {
+            textareaRef.current.style.height = 'auto';
+            textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+        }
+    };
 
     const generateSummaries = (number: number) => {
         console.log('Fetching data from the backend with number:', number);
+        setLoading(true);
         fetch('http://localhost:8000/api/generate-summaries', {
             method: 'POST',
             headers: {
@@ -40,11 +76,14 @@ const PopUp: React.FC<PopUpProps> = ({ isOpen, onClose }) => {
             })
             .catch(error => {
                 console.error('Error fetching text:', error);
+            })
+            .finally(() => {
+                setLoading(false);
             });
     };
 
     const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (e.target === e.currentTarget) {
+        if (e.target === e.currentTarget && !loading) {
             onClose();
         }
     };
@@ -53,16 +92,31 @@ const PopUp: React.FC<PopUpProps> = ({ isOpen, onClose }) => {
 
     return (
         <div className="popup-overlay" onClick={handleOverlayClick}>
-            <div className="popup-content">
-                <span className="close" onClick={onClose}>&times;</span>
+            <div className="popup-content" style={{ pointerEvents: loading ? 'none' : 'auto' }}>
                 <div className="flex justify-between mb-4">
-                    <Button className="mr-2" onClick={() => generateSummaries(1)}>Summary Max 100 words</Button>
+                    <Button className="mr-2" onClick={() => generateSummaries(1)}>Short Summary</Button>
                     <Button className="mr-2" onClick={() => generateSummaries(2)}>Summary by Topics</Button>
                     <Button className="mr-2" onClick={() => generateSummaries(3)}>Extended Summary</Button>
                     <Button onClick={() => generateSummaries(4)}>Brain Rot Summary</Button>
                 </div>
                 <div className="grid w-full gap-2">
-                    <Textarea value={text} readOnly />
+                    {loading ? (
+                        <div className="loading-overlay">
+                            <Progress value={progress} />
+                        </div>
+                    ) : (
+                        <ScrollArea style={{ maxHeight: '500px' }}>
+                            <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
+                                <Textarea
+                                    ref={textareaRef}
+                                    value={text}
+                                    readOnly
+                                    onInput={adjustTextareaHeight}
+                                    style={{ height: 'auto', overflowY: 'auto' }}
+                                />
+                            </div>
+                        </ScrollArea>
+                    )}
                     <Button>Download</Button>
                 </div>
             </div>
