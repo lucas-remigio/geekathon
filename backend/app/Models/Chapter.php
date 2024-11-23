@@ -5,20 +5,25 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Models\Chapter;
+use App\Models\Pdf;
+use App\Models\Subject;
 
-class Pdf extends Model
+class Chapter extends Model
 {
     use HasFactory, SoftDeletes;
     protected $dates = ['deleted_at'];
 
     protected $fillable = [
-        'file_name',
-        'file_path',
+        'name',
     ];
 
-    public function chapter()
+    public function pdfs()
     {
-        return $this->belongsTo(Chapter::class, 'chapter_id', 'id');
+        return $this->hasMany(Pdf::class, 'chapter_id', 'id');
+    }
+
+    public function subject()
+    {
+        return $this->belongsTo(Subject::class, 'subject_id', 'id');
     }
 }
