@@ -222,4 +222,94 @@ class AwsController extends Controller
     {
         return response()->json(['message' => 'Extract Data Endpoint Reached']);
     }
+
+    public function correctExtensiveQuestion(Request $request)
+    {
+        // Force JSON response
+        $request->headers->set('Accept', 'application/json');
+
+        // Validate the incoming request
+        $validated = $request->validate([
+            'question' => 'required|string', // Validate the question input
+            'answer' => 'required|string',   // Validate the answer input
+        ]);
+
+        $question = $validated['question'];
+        $answer = $validated['answer'];
+
+        $promptFilePath = base_path('resources/promptCorrectAnswer.txt');
+
+        // Read the prompt from the file
+        if (!file_exists($promptFilePath)) {
+            die("Prompt file not found.");
+        }
+
+        // Prepare the prompt for OpenAI
+        $prompt = file_get_contents($promptFilePath)
+        . "Question: \"$question\"\n\n"
+        . "Answer: \"$answer\"";
+
+        try {
+
+            // Increase execution time to 300 seconds (5 minutes)
+            set_time_limit(300);
+
+            // Alternatively, use ini_set to increase the execution time
+            ini_set('max_execution_time', 300);
+
+            // Call Amazon Bedrock for Llama model inference
+            $response = $this->client->invokeModel([
+                'modelId' => 'mistral.mistral-large-2402-v1:0', // Adjust to match your model ID
+                'body' => json_encode([
+                    'max_tokens' => 2048,
+                    'top_p' => 1,
+                    'stop' => [],
+                    // rever este parametro
+                    'temperature' => 0.7,
+                    'messages' => [
+                        [
+                            'role' => 'user',
+                            'content' => $prompt // Use the validated input as the content
+                        ]
+                    ],
+                ]),
+                'accept' => 'application/json',
+                'contentType' => 'application/json',
+            ]);
+
+
+            $responseBody = json_decode($response['body'], true);
+
+            // Extract the JSON string from the 'content' field
+            if (!isset($responseBody['choices'][0]['message']['content'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid response structure: Content field not found',
+                ], 500);
+            }
+
+            $contentJson = $responseBody['choices'][0]['message']['content'];
+            $decodedContent = json_decode($contentJson, true);
+
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to decode JSON content from AI response',
+                ], 500);
+            }
+
+
+            return response()->json([
+                'success' => true,
+                'grade' => $decodedContent["grade"],
+                'feedback' => $decodedContent["feedback"],
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
 }
