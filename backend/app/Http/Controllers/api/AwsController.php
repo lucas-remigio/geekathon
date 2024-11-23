@@ -138,6 +138,12 @@ class AwsController extends Controller
 
         try {
 
+            // Increase execution time to 300 seconds (5 minutes)
+            set_time_limit(300);
+
+            // Alternatively, use ini_set to increase the execution time
+            ini_set('max_execution_time', 300);
+
             // Call Amazon Bedrock for Llama model inference
             $response = $this->client->invokeModel([
                 'modelId' => 'mistral.mistral-large-2402-v1:0', // Adjust to match your model ID
@@ -149,7 +155,7 @@ class AwsController extends Controller
                     'messages' => [
                         [
                             'role' => 'user',
-                            'content' => $prompt // Use the validated input as the content
+                            'content' => $promptToSend // Use the validated input as the content
                         ]
                     ],
                 ]),

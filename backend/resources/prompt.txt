@@ -1,7 +1,7 @@
 Generate 9 multiple-choice questions and 1 extensive question with the content presented before. For the multiple-choice questions:
     •    Each question must have 4 options.
     •    Clearly mark the correct answer.
-    •    Questions should vary in difficulty and cover different aspects of cats, such as their behavior, anatomy, history, breeds, and role in culture.
+    •    Questions should vary in difficulty and cover different aspects the content.
     •    Include diverse topics such as scientific facts, fun trivia.
 
 For the extensive question:
