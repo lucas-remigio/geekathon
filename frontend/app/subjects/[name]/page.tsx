@@ -61,7 +61,7 @@ export default function SubjectDetailPage() {
 
   const getPdfs = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/pdfs');
+      const response = await fetch('http://127.0.0.1:8000/api/pdfs');
       const data = await response.json();
       setPdfs(data)
       setIsLoading(false); 
@@ -70,6 +70,41 @@ export default function SubjectDetailPage() {
       setIsLoading(false);
     }
   };
+
+  const handleDownload = async (pdf: any) => {
+    try {
+      // Make the GET request to fetch the PDF
+      const response = await fetch(`http://localhost:8000/api/pdfs/${pdf.id}`);
+      
+      // Check if the response is ok (successful)
+      if (!response.ok) {
+        throw new Error('Failed to fetch the PDF');
+      }
+  
+      // Get the PDF as a Blob
+      const pdfBlob = await response.blob();
+  
+      // Create a URL for the Blob
+      const pdfUrl = window.URL.createObjectURL(pdfBlob);
+  
+      // Create a link element
+      const link = document.createElement('a');
+      link.href = pdfUrl;
+  
+      // Set the download attribute to prompt the browser to download the file
+      link.download = pdf.file_name.slice(pdf.file_name.indexOf('_') + 1);
+  
+      // Trigger the download by programmatically clicking the link
+      link.click();
+  
+      // Revoke the object URL to free memory
+      window.URL.revokeObjectURL(pdfUrl);
+    } catch (error) {
+      console.error('Error downloading the PDF:', error);
+    }
+  };
+  
+  
 
   useEffect(() => {
     if (isClient) {
@@ -141,40 +176,40 @@ export default function SubjectDetailPage() {
                               <div className="text-center text-xl">No PDFs available</div>
                             </div>
                           ) : (
-                            <CarouselContent className="flex gap-2 -ml-2 md:-ml-4">
-                              {pdfs.map((pdf, index) => (
-                                <CarouselItem
-                                  key={index}
-                                  className="flex-grow md:basis-1/3 lg:basis-1/3 pl-2 md:pl-4 max-w-sm carousel-item"
-                                  style={{ maxWidth: "12rem" }}
-                                >
-                                  <div className="p-1">
-                                    <Card>
-                                      <CardContent className="flex flex-col items-center justify-center p-6">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          fill="none"
-                                          viewBox="0 0 24 24"
-                                          strokeWidth="1.5"
-                                          stroke="currentColor"
-                                          className="w-[40%] h-[20%]"
-                                        >
-                                          <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m.75 12 3 3m0 0 3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
-                                          />
-                                        </svg>
-                                        <div className="mt-2 text-center font-medium overflow-hidden text-ellipsis whitespace-nowrap w-full max-w-[200px] text-xs sm:text-sm md:text-sm lg:text-base">
-                                          {pdf.file_name.slice(pdf.file_name.indexOf('_') + 1)}
-                                        </div>
-                                      </CardContent>
-                                    </Card>
-                                  </div>
-                                </CarouselItem>
-                              ))}
-                            </CarouselContent>
-                          )}
+                          <CarouselContent className="flex gap-2 -ml-2 md:-ml-4">
+                            {pdfs.map((pdf, index) => (
+                              <CarouselItem
+                                key={index}
+                                className="flex-grow md:basis-1/3 lg:basis-1/3 pl-2 md:pl-4 max-w-sm carousel-item"
+                                style={{ maxWidth: "12rem" }}
+                                onClick={() => handleDownload(pdf)}  // Adding click handler to download PDF
+                              >
+                                <div className="p-1">
+                                  <Card>
+                                    <CardContent className="flex flex-col items-center justify-center p-6">
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        strokeWidth="1.5"
+                                        stroke="currentColor"
+                                        className="w-[40%] h-[20%]"
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m.75 12 3 3m0 0 3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
+                                        />
+                                      </svg>
+                                      <div className="mt-2 text-center font-medium overflow-hidden text-ellipsis whitespace-nowrap w-full max-w-[200px] text-xs sm:text-sm md:text-sm lg:text-base">
+                                        {pdf.file_name.slice(pdf.file_name.indexOf('_') + 1)}
+                                      </div>
+                                    </CardContent>
+                                  </Card>
+                                </div>
+                              </CarouselItem>
+                            ))}
+                          </CarouselContent>)}
                           <CarouselPrevious className="ml-12 carousel-button" />
                           <CarouselNext className="mr-12 carousel-button" />
                         </Carousel>
@@ -235,7 +270,11 @@ export default function SubjectDetailPage() {
           </TabsContent>
         </Tabs>
       </div>
-      <UploadPdfModal isOpen={isModalOpen} onClose={handleCloseModal} />
+      <UploadPdfModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        getPdfs={getPdfs} // Pass the getPdfs function
+      />
     </div>
   );
 }
