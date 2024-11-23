@@ -12,8 +12,8 @@ export function MainNav({
       {...props}
     >
       <Link
-        href='/examples/dashboard'
-        className='text-3xl font-bold tracking-tight'
+        href='/subjects'
+        className='text-3xl font-bold tracking-tight transition-colors hover:text-primary'
       >
         SubjectsMate
       </Link>
