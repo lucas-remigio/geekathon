@@ -32,7 +32,7 @@ export default function UploadPdfModal({ isOpen, onClose }: UploadModalProps) {
     })
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/upload-files', {
+      const response = await fetch('http://127.0.0.1:8000/api/pdfs', {
         method: 'POST',
         body: formData
       })

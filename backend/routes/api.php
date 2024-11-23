@@ -6,6 +6,7 @@ use App\Http\Controllers\api\FileUploadController;
 
 
 
-Route::post('/upload-files', [FileUploadController::class, 'upload']);
+Route::post('/pdfs', [FileUploadController::class, 'upload']);
+Route::get('/pdfs', [FileUploadController::class, 'index']);;
 Route::post('/generate-test', [AwsController::class, 'generateTest']);
 Route::post('/test', [AwsController::class, 'test']);

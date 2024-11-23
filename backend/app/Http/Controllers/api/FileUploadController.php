@@ -9,6 +9,23 @@ use App\Models\Pdf;
 class FileUploadController extends Controller
 {
 
+
+    public function index(Request $request)
+    {
+        $query = Pdf::query();
+
+        // Apply search filter
+        if ($request->has('search')) {
+            $query->where('file_name', 'like', '%' . $request->search . '%');
+        }
+
+        // Get all or filtered PDFs
+        $pdfs = $query->get();
+
+        // Return paginated PDFs
+        return response()->json($pdfs);
+    }
+
     /**
      * Handle file uploads.
      */
