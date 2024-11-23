@@ -30,10 +30,18 @@ export interface QuizResponse {
   data: QuizData
 }
 
+export interface EvaluationResponse {
+  success: boolean
+  grade: string
+  feedback: string
+}
+
 export default function QuizPage() {
   const [quizData, setQuizData] = useState<QuizData | null>(null) // State to hold fetched data
   const [loading, setLoading] = useState<boolean>(true) // State to handle loading
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({}) // State to store user answers
+  const [evaluationResult, setEvaluationResult] =
+    useState<EvaluationResponse | null>(null)
 
   useEffect(() => {
     const fetchQuizData = async (): Promise<void> => {
@@ -81,18 +89,24 @@ export default function QuizPage() {
     }))
   }
 
-  const handleSubmit = async (): Promise<void> => {
+  const handleSubmitExtensive = async (): Promise<void> => {
     console.log('User Answers:', userAnswers)
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/submit-test', {
+      // Extract the extensive question and its answer
+      const extensiveQuestion = quizData?.extensiveQuestion.question || ''
+      const extensiveAnswer = userAnswers['extensiveQuestion'] || ''
+
+      // Make the API call
+      const response = await fetch('http://127.0.0.1:8000/api/correct-answer', {
         method: 'POST',
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          answers: userAnswers // Sending user answers to API
+          question: extensiveQuestion,
+          answer: extensiveAnswer
         })
       })
 
@@ -101,9 +115,81 @@ export default function QuizPage() {
       }
 
       const data = await response.json()
-      console.log('Submission Response:', data)
+      console.log('Extensive Question Evaluation Response:', data)
+      setEvaluationResult(data)
     } catch (error) {
-      console.error('Error submitting test:', error)
+      console.error('Error submitting the extensive question:', error)
+    }
+  }
+
+  const handleSubmit = async (): Promise<void> => {
+    try {
+      // Call the multiple-choice submission function
+      await handleSubmitMultipleChoice()
+
+      // Call the extensive question submission function
+      await handleSubmitExtensive()
+
+      console.log('Test submission completed successfully!')
+    } catch (error) {
+      console.error('Error submitting the test:', error)
+    }
+  }
+
+  const handleSubmitMultipleChoice = async (): Promise<void> => {
+    if (!quizData) return
+
+    // Map the questions into the required format for the backend
+    const multipleChoiceResults = quizData.multipleChoiceQuestions.map(
+      question => {
+        const selectedOptionLabel = userAnswers[question.id.toString()] || ''
+
+        const selectedOptionText =
+          question.choices.find(choice => choice.label === selectedOptionLabel)
+            ?.text || ''
+
+        const isCorrect = selectedOptionLabel === question.correctAnswer
+
+        return {
+          question: question.question, // The question text
+          isCorrect, // Whether the answer is correct
+          chosenAnswer: selectedOptionText // The user's selected answer
+        }
+      }
+    )
+
+    console.log('Multiple Choice Results:', multipleChoiceResults)
+
+    try {
+      // Make the API call
+      const response = await fetch(
+        'http://127.0.0.1:8000/api/submit-mcq-results',
+        {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            results: multipleChoiceResults // Send the array of results
+          })
+        }
+      )
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      console.log('MCQ Results Submission Response:', data)
+
+      // Handle the feedback from the API (if needed)
+      if (data.success) {
+        console.log('Feedback:', data.feedback)
+        // Display feedback to the user, handle grading, or store the feedback
+      }
+    } catch (error) {
+      console.error('Error submitting the multiple-choice results:', error)
     }
   }
 
@@ -156,6 +242,24 @@ export default function QuizPage() {
       </div>
       <div>
         <h2 className='text-xl font-semibold'>Extensive Question</h2>
+
+        {evaluationResult && (
+          <div
+            className={`mb-4 rounded border p-4 shadow-md ${
+              parseInt(evaluationResult.grade) > 10
+                ? 'bg-green-800 text-white'
+                : 'bg-red-800 text-white'
+            }`}
+          >
+            <p>
+              <strong>Grade:</strong> {evaluationResult.grade}
+            </p>
+            <p className='mt-2'>
+              <strong>Feedback:</strong> {evaluationResult.feedback}
+            </p>
+          </div>
+        )}
+
         <div className='mt-4 rounded border p-4'>
           <p>{quizData.extensiveQuestion.question}</p>
           <textarea

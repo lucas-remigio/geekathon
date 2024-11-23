@@ -312,4 +312,107 @@ class AwsController extends Controller
             ], 500);
         }
     }
+
+    public function correctMultipleChoiceQuestions(Request $request)
+    {
+        // Force JSON response
+        $request->headers->set('Accept', 'application/json');
+
+        // Validate the incoming request
+        $validatedData = $request->validate([
+            'results' => 'required|array',
+            'results.*.question' => 'required|string',
+            'results.*.isCorrect' => 'required|boolean',
+            'results.*.chosenAnswer' => 'nullable|string',
+        ]);
+
+        $results = $validatedData['results'];
+
+         // Prepare the prompt for AI correction
+         $prompts = array_map(function ($result, $index) {
+            return [
+                'id' => $index + 1, // Generate a unique ID for each question
+                'question' => $result['question'],
+                'chosenAnswer' => $result['chosenAnswer'],
+                'isCorrect' => $result['isCorrect'],
+            ];
+        }, $results, array_keys($results));
+
+        // Read the prompt template from a file
+        $promptFilePath = base_path('resources/promptCorrectAnswer.txt');
+        if (!file_exists($promptFilePath)) {
+            die("Prompt file not found.");
+        }
+        $basePrompt = file_get_contents($promptFilePath);
+        $promptContent = $basePrompt . "\n\n";
+
+        foreach ($prompts as $prompt) {
+            $promptContent .= "Question ID: {$prompt['id']}\n"; // Include the generated Question ID
+            $promptContent .= "Question: {$prompt['question']}\n";
+            $promptContent .= "Chosen Answer: {$prompt['chosenAnswer']}\n";
+            $promptContent .= "Is correct?: " . ($prompt['isCorrect'] ? 'Yes' : 'No') . "\n\n";
+        }
+
+        try {
+
+            // Increase execution time to 300 seconds (5 minutes)
+            set_time_limit(300);
+
+            // Alternatively, use ini_set to increase the execution time
+            ini_set('max_execution_time', 300);
+
+            // Call Amazon Bedrock for Llama model inference
+            $response = $this->client->invokeModel([
+                'modelId' => 'mistral.mistral-large-2402-v1:0', // Adjust to match your model ID
+                'body' => json_encode([
+                    'max_tokens' => 2048,
+                    'top_p' => 1,
+                    'stop' => [],
+                    // rever este parametro
+                    'temperature' => 0.7,
+                    'messages' => [
+                        [
+                            'role' => 'user',
+                            'content' => $promptContent // Use the validated input as the content
+                        ]
+                    ],
+                ]),
+                'accept' => 'application/json',
+                'contentType' => 'application/json',
+            ]);
+
+
+            $responseBody = json_decode($response['body'], true);
+
+            // Extract the JSON string from the 'content' field
+            if (!isset($responseBody['choices'][0]['message']['content'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid response structure: Content field not found',
+                ], 500);
+            }
+
+            $contentJson = $responseBody['choices'][0]['message']['content'];
+            $decodedContent = json_decode($contentJson, true);
+
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to decode JSON content from AI response',
+                ], 500);
+            }
+
+
+            return response()->json([
+                'success' => true,
+                'feedback' => $decodedContent, // Return AI feedback directly
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
 }
