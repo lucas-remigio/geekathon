@@ -5,6 +5,8 @@ namespace App\Http\Controllers\api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Aws\Bedrock\BedrockClient;
+use App\Models\Pdf;
+use Smalot\PdfParser\Parser;
 
 use Aws\BedrockRuntime\BedrockRuntimeClient;
 
@@ -27,10 +29,13 @@ class AwsController extends Controller
 
         // Validate the incoming request
         $validated = $request->validate([
-            'prompt' => 'required|string',
+            'pdf_ids' => 'required|array',
+            'pdf_ids.*' => 'integer|exists:pdfs,id', // Validate each ID exists in the 'pdfs' table
         ]);
 
-        // Define the file path
+        $pdfs = Pdf::whereIn('id', $validated['pdf_ids'])->get();
+        $pdfParser = new Parser();
+
         $promptFilePath = base_path('resources/prompt.txt');
 
         // Read the prompt from the file
@@ -39,6 +44,28 @@ class AwsController extends Controller
         }
 
         $prompt = file_get_contents($promptFilePath);
+
+        $pdfsContent = "";
+
+        // Loop through each PDF and read its content
+        foreach ($pdfs as $pdf) {
+            $filePath = storage_path("app/{$pdf->file_path}"); // Adjust if your files are stored elsewhere
+
+            if (!file_exists($filePath)) {
+                die("File not found: {$filePath}");
+            }
+
+            // Parse the PDF
+            $pdfDocument = $pdfParser->parseFile($filePath);
+
+            // Extract text from the PDF
+            $pdfContent = $pdfDocument->getText();
+
+            // Append the extracted text to the overall content
+            $pdfsContent .= $pdfContent;
+        }
+
+        $promptToSend = $pdfsContent . "\n" . $prompt;
 
         try {
 
