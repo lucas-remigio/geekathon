@@ -36,12 +36,26 @@ export interface EvaluationResponse {
   feedback: string
 }
 
+// Type for feedback returned from the API for each question
+export interface QuestionFeedback {
+  id: number // The ID of the question
+  grade: 'correct' | 'incorrect' // Whether the answer was correct or not
+  feedback: string // Feedback message for the question
+}
+
+// Extend MultipleChoiceQuestion to include feedback and grade
+export interface ExtendedMultipleChoiceQuestion extends MultipleChoiceQuestion {
+  feedback?: string // Feedback for the question
+  grade?: 'correct' | 'incorrect' // Grade for the question
+}
+
 export default function QuizPage() {
   const [quizData, setQuizData] = useState<QuizData | null>(null) // State to hold fetched data
   const [loading, setLoading] = useState<boolean>(true) // State to handle loading
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({}) // State to store user answers
   const [evaluationResult, setEvaluationResult] =
     useState<EvaluationResponse | null>(null)
+  const [mcqResults, setMcqResults] = useState<QuestionFeedback[]>([])
 
   useEffect(() => {
     const fetchQuizData = async (): Promise<void> => {
@@ -183,10 +197,9 @@ export default function QuizPage() {
       const data = await response.json()
       console.log('MCQ Results Submission Response:', data)
 
-      // Handle the feedback from the API (if needed)
       if (data.success) {
-        console.log('Feedback:', data.feedback)
-        // Display feedback to the user, handle grading, or store the feedback
+        // Store results in the new state
+        setMcqResults(data.feedback.results)
       }
     } catch (error) {
       console.error('Error submitting the multiple-choice results:', error)
@@ -210,35 +223,53 @@ export default function QuizPage() {
       <h1 className='mb-4 text-2xl font-bold'>Quiz</h1>
       <div className='mb-6'>
         <h2 className='text-xl font-semibold'>Multiple Choice Questions</h2>
-        {quizData.multipleChoiceQuestions.map(question => (
-          <div key={question.id} className='mb-4 rounded border p-4'>
-            <p className='font-medium'>
-              {question.id}. {question.question}
-            </p>
-            <ul className='mt-2'>
-              {question.choices.map(choice => (
-                <li key={choice.label} className='mt-1'>
-                  <label>
-                    <input
-                      type='radio'
-                      name={`question-${question.id}`}
-                      value={choice.label}
-                      className='mr-2'
-                      onChange={
-                        e =>
+        {quizData.multipleChoiceQuestions.map(question => {
+          const result = mcqResults.find(res => res.id === question.id) // Find result by ID
+
+          return (
+            <div key={question.id} className='mb-4 rounded border p-4'>
+              <p className='font-medium'>
+                {question.id}. {question.question}
+              </p>
+              <ul className='mt-2'>
+                {question.choices.map(choice => (
+                  <li key={choice.label} className='mt-1'>
+                    <label>
+                      <input
+                        type='radio'
+                        name={`question-${question.id}`}
+                        value={choice.label}
+                        className='mr-2'
+                        onChange={e =>
                           handleAnswerChange(
                             question.id.toString(),
                             e.target.value
-                          ) // Update state with selected answer
-                      }
-                    />
-                    {choice.label}: {choice.text}
-                  </label>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
+                          )
+                        }
+                      />
+                      {choice.label}: {choice.text}
+                    </label>
+                  </li>
+                ))}
+              </ul>
+              {/* Display feedback warning */}
+              {result && (
+                <div
+                  className={`mt-2 rounded p-2 ${
+                    result.grade === 'correct'
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-red-100 text-red-700'
+                  }`}
+                >
+                  <strong>
+                    {result.grade === 'correct' ? 'Correct!' : 'Incorrect!'}
+                  </strong>{' '}
+                  {result.feedback}
+                </div>
+              )}
+            </div>
+          )
+        })}
       </div>
       <div>
         <h2 className='text-xl font-semibold'>Extensive Question</h2>

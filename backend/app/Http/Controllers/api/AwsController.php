@@ -339,7 +339,7 @@ class AwsController extends Controller
         }, $results, array_keys($results));
 
         // Read the prompt template from a file
-        $promptFilePath = base_path('resources/promptCorrectAnswer.txt');
+        $promptFilePath = base_path('resources/promptMCQCorrect.txt');
         if (!file_exists($promptFilePath)) {
             die("Prompt file not found.");
         }
