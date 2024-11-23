@@ -11,13 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
+        Schema::create('pdfs', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 60);
-            $table->string('email')->unique();
-            $table->string('password');
-            $table->char('role',1);
+            $table->string('file_name', 255);
+            $table->string('file_path', 255);
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
@@ -26,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('pdf');
     }
 };
