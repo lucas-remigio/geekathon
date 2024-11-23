@@ -99,9 +99,6 @@ return [
 
     'key' => env('APP_KEY'),
 
-    'providers' => [
-        Aws\Laravel\AwsServiceProvider::class,
-    ],
 
     'aliases' => [
         'AWS' => Aws\Laravel\AwsFacade::class,
