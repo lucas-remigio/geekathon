@@ -18,19 +18,39 @@ export default function UploadPdfModal({ isOpen, onClose }: UploadModalProps) {
     }
   }
 
-  const handleUpload = (e: FormEvent) => {
+  const handleUpload = async (e: FormEvent) => {
     e.preventDefault()
+
     if (selectedFiles.length === 0) {
       alert('No files selected.')
       return
     }
-    console.log(
-      'Uploading files:',
-      selectedFiles.map(file => file.name)
-    )
-    alert('Files uploaded successfully!')
-    onClose()
-    setSelectedFiles([]) // Clear the list after upload
+
+    const formData = new FormData()
+    selectedFiles.forEach(file => {
+      formData.append('files[]', file)
+    })
+
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/upload-files', {
+        method: 'POST',
+        body: formData
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to upload files')
+      }
+
+      const result = await response.json()
+      console.log('Uploaded files:', result.files)
+      alert('Files uploaded successfully!')
+    } catch (error) {
+      console.error('Upload error:', error)
+      alert('Failed to upload files.')
+    } finally {
+      onClose()
+      setSelectedFiles([]) // Clear the file list
+    }
   }
 
   const handleRemoveFile = (index: number) => {
