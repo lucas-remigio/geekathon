@@ -151,6 +151,7 @@ class AwsController extends Controller
                     'max_tokens' => 2048,
                     'top_p' => 1,
                     'stop' => [],
+                    // rever este parametro
                     'temperature' => 0.7,
                     'messages' => [
                         [
