@@ -26,6 +26,5 @@ class DatabaseSeeder extends Seeder
             'email' => 'magfofa@pt.pt',
             'role' => 'T'
         ]);
-        Pdf::factory()->create();
     }
 }
