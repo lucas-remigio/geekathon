@@ -25,7 +25,7 @@ import { UserNav } from '@/components/user-nav'
 import { ThemeToggle } from '@/components/theme-toggle'
 
 export const metadata: Metadata = {
-  title: 'Subjects Page',
+  title: 'Subjects',
   description: 'Page where subjects are displayed'
 }
 
