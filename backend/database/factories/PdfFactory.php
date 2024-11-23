@@ -18,7 +18,7 @@ class PdfFactory extends Factory
     {
         return [
             'file_name' => fake()->name(),
-            'file_path' => 'private/testes/pdf.pdf'
+            'file_path' => 'private/upload/pdf.pdf'
         ];
     }
 }
