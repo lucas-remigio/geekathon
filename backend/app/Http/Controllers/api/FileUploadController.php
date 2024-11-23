@@ -31,18 +31,11 @@ class FileUploadController extends Controller
      */
     public function upload(Request $request)
     {
-         // Validate the request to ensure it contains files
-        if (!$request->hasFile('files')) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No files were uploaded.',
-            ], 400); // Return a 400 Bad Request response
-        }
 
         // Validate the request
         $request->validate([
             'files' => 'required|array',
-            'files.*' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048', // Adjust the rules as needed
+            'files.*' => 'required|file|mimes:jpg,jpeg,png,pdf|max:10240', // Adjust the rules as needed
         ]);
 
         $uploadedFiles = [];

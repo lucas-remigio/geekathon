@@ -298,6 +298,14 @@ class AwsController extends Controller
                 ], 500);
             }
 
+            // update user xp count
+            $user = auth()->user();
+
+            // calculate xp based on the grade
+            $xp = $decodedContent["grade"] * 1;
+            $user->xp += $xp;
+
+
 
             return response()->json([
                 'success' => true,
@@ -354,7 +362,6 @@ class AwsController extends Controller
         }
 
         try {
-
             // Increase execution time to 300 seconds (5 minutes)
             set_time_limit(300);
 
@@ -402,6 +409,18 @@ class AwsController extends Controller
                 ], 500);
             }
 
+            // update user xp count
+            $user = auth()->user();
+
+            // calculate xp based on the grade
+            $xp = 0;
+            foreach ($results as $result) {
+                if ($result['isCorrect']) {
+                    $xp += 10;
+                }
+            }
+
+            $user->xp += $xp;
 
             return response()->json([
                 'success' => true,

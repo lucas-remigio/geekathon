@@ -138,11 +138,8 @@ export default function QuizPage() {
 
   const handleSubmit = async (): Promise<void> => {
     try {
-      // Call the multiple-choice submission function
-      await handleSubmitMultipleChoice()
-
-      // Call the extensive question submission function
-      await handleSubmitExtensive()
+      // Execute both submissions concurrently
+      await Promise.all([handleSubmitMultipleChoice(), handleSubmitExtensive()])
 
       console.log('Test submission completed successfully!')
     } catch (error) {
