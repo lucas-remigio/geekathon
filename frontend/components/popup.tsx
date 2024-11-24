@@ -139,7 +139,7 @@ const PopUp: React.FC<PopUpProps> = ({ isOpen, onClose }) => {
                 <div className="grid w-full gap-2">
                     {loading ? (
                         <div className="loading-overlay">
-                            <Spinner />
+                            <Spinner show={loading} size="large" />
                         </div>
                     ) : (
                         <ScrollArea style={{ maxHeight: '500px' }}>
