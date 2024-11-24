@@ -15,13 +15,19 @@ class AwsController extends Controller
 {
     protected $client = null;
 
-    public function __construct() {
-        // Constructor method, called when a new instance is created
+    public function __construct()
+    {
+        $region = env("AWS_DEFAULT_REGION");
+
+        if (!$region) {
+            $region = 'us-west-2';
+        }
+
         $this->client = new BedrockRuntimeClient([
             'version' => 'latest',
-            'region' => env("AWS_DEFAULT_REGION"),
+            'region' => $region,
             'http' => [
-            'verify' => false, // Desativa a verificação do certificado SSL
+                'verify' => false, // Disable SSL certificate verification
             ],
         ]);
     }
@@ -119,7 +125,7 @@ class AwsController extends Controller
 
         // Loop through each PDF and read its content
         foreach ($pdfs as $pdf) {
-            $filePath = storage_path("app/{$pdf->file_path}"); // Adjust if your files are stored elsewhere
+            $filePath = storage_path("app/private/{$pdf->file_path}"); // Adjust if your files are stored elsewhere
 
             if (!file_exists($filePath)) {
                 die("File not found: {$filePath}");
@@ -176,6 +182,7 @@ class AwsController extends Controller
             }
 
             $contentJson = $responseBody['choices'][0]['message']['content'];
+
 
             // Decode the extracted JSON string into an associative array
             $decodedContent = json_decode($contentJson, true);

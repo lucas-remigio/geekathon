@@ -13,6 +13,7 @@ class Pdf extends Model
     protected $dates = ['deleted_at'];
 
     protected $fillable = [
+        'chapter_id',
         'file_name',
         'file_path',
     ];

@@ -30,14 +30,14 @@ class PdfController extends Controller
     public function show(Request $request, $id)
     {
         $pdf = Pdf::find($id);
-    
+
         if (!$pdf) {
             return response()->json(['message' => 'Pdf not found'], 404);
         }
-    
+
         // Get everything after the first '_'
         $fileName = substr($pdf->file_name, strpos($pdf->file_name, '_') + 1);
-    
+
         return Storage::download($pdf->file_path, $fileName);
     }
     /**
@@ -45,16 +45,9 @@ class PdfController extends Controller
      */
     public function upload(Request $request)
     {
-         // Validate the request to ensure it contains files
-        if (!$request->hasFile('files')) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No files were uploaded.',
-            ], 400); // Return a 400 Bad Request response
-        }
-
         // Validate the request
         $request->validate([
+            'chapter_id' => 'required|integer|exists:chapters,id',
             'files' => 'required|array',
             'files.*' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048', // Adjust the rules as needed
         ]);
@@ -77,6 +70,7 @@ class PdfController extends Controller
             }
 
             $pdf = new Pdf();
+            $pdf->chapter_id = $request->chapter_id;
             $pdf->file_name = $customFileName;
             $pdf->file_path = $path;
             $pdf->save();

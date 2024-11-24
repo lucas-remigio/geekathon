@@ -56,9 +56,13 @@ export default function QuizPage() {
   const [evaluationResult, setEvaluationResult] =
     useState<EvaluationResponse | null>(null)
   const [mcqResults, setMcqResults] = useState<QuestionFeedback[]>([])
-
   useEffect(() => {
+    let isCalled = false // Add a flag to track whether the effect has already been executed
+
     const fetchQuizData = async (): Promise<void> => {
+      if (isCalled) return // Prevent duplicate calls
+      isCalled = true
+
       try {
         const response = await fetch(
           'http://127.0.0.1:8000/api/generate-test',
@@ -69,23 +73,23 @@ export default function QuizPage() {
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-              pdf_ids: [4] // Replace with appropriate IDs as needed
+              pdf_ids: [3] // Replace with appropriate IDs as needed
             })
           }
         )
+
+        // if quiz data is already fill, ignore the response of the second request
+        if (quizData) return
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`)
         }
 
-        const data: QuizResponse = await response.json() // Typed response
+        const data = await response.json() // Typed response
 
-        if (!data.success) {
-          console.error('Failed to fetch quiz data')
-          return
+        if (data.success) {
+          setQuizData(data.data) // Set fetched data
         }
-
-        setQuizData(data.data) // Set fetched data
       } catch (error) {
         console.error('Error fetching quiz data:', error)
       } finally {
