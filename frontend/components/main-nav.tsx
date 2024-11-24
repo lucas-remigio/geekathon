@@ -26,10 +26,6 @@ export function MainNav({
       >
         SubjectsMate
       </Link>
-      <button onClick={togglePopup} className='btn'>
-        Open Popup
-      </button>
-      <PopUp isOpen={isPopupOpen} onClose={togglePopup} />
     </nav>
   )
 }

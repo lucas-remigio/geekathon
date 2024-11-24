@@ -212,7 +212,18 @@ export default function SubjectDetailPage() {
           <TabsContent value='subjects' className='space-y-4'>
             <div className='grid gap-4 md:grid-cols-1 lg:grid-cols-1'>
               {isLoadingChapters ? (
-                <div className='text-center text-xl'>Loading chapters...</div>
+                                <div className="flex justify-center items-center h-32">
+                                <div
+                                  className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-t-transparent border-e-transparent align-[-0.125em] text-surface motion-reduce:animate-[spin_1.5s_linear_infinite] dark:text-white"
+                                  role="status"
+                                >
+                                  <span
+                                    className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]"
+                                  >
+                                    Loading...
+                                  </span>
+                                </div>
+                              </div>
               ) : chapters.length === 0 ? (
                 <div className='text-center text-xl'>No chapters available</div>
               ) : (
@@ -248,11 +259,18 @@ export default function SubjectDetailPage() {
                             </div>
                             <Carousel className='w-full overflow-hidden pb-5 pl-10 pr-10 pt-5'>
                               {isLoadingPdfs ? (
-                                <div className='flex w-full items-center justify-center'>
-                                  <div className='text-center text-xl'>
-                                    Loading PDFs...
-                                  </div>
+                                <div className="flex justify-center items-center h-32">
+                                <div
+                                  className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-t-transparent border-e-transparent align-[-0.125em] text-surface motion-reduce:animate-[spin_1.5s_linear_infinite] dark:text-white"
+                                  role="status"
+                                >
+                                  <span
+                                    className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]"
+                                  >
+                                    Loading...
+                                  </span>
                                 </div>
+                              </div>
                               ) : !pdfsByChapter[chapter.id] ||
                                 pdfsByChapter[chapter.id].length === 0 ? (
                                 <div className='flex w-full items-center justify-center'>
