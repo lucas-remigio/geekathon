@@ -4,13 +4,18 @@ import React, { ChangeEvent, FormEvent, useState } from 'react'
 import { Button } from '@/components/ui/button'
 
 interface UploadPdfModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  chapter_id: number;  // Add chapter_id as a prop
-  getPdfs: (id: number) => void; // Expecting chapter_id type as number
+  isOpen: boolean
+  onClose: () => void
+  chapter_id: number // Add chapter_id as a prop
+  getPdfs: (id: number) => void // Expecting chapter_id type as number
 }
 
-export default function UploadPdfModal({ isOpen, onClose, chapter_id, getPdfs }: UploadPdfModalProps) {
+export default function UploadPdfModal({
+  isOpen,
+  onClose,
+  chapter_id,
+  getPdfs
+}: UploadPdfModalProps) {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]) // State to store the list of files
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -35,15 +40,21 @@ export default function UploadPdfModal({ isOpen, onClose, chapter_id, getPdfs }:
     formData.append('chapter_id', chapter_id.toString()) // Correctly append chapter_id
 
     try {
-      const response = await fetch('http://localhost:8000/api/pdfs', {
+      const response = await fetch('http://127.0.0.1:8000/api/pdfs', {
         method: 'POST',
-        body: formData
+        body: formData,
+        headers: {
+          Accept: 'application/json'
+        },
+        mode: 'cors' // Enables CORS
       })
-      
-      console.log('Response:', response);
+
+      console.log('Response:', response)
 
       if (!response.ok) {
-        throw new Error('Failed to upload files')
+        const errorText = await response.text()
+        console.error('Error response text:', errorText)
+        throw new Error(`Failed to upload files: ${response.statusText}`)
       }
 
       const result = await response.json()
@@ -52,7 +63,6 @@ export default function UploadPdfModal({ isOpen, onClose, chapter_id, getPdfs }:
 
       // Fetch the PDFs again after upload is successful
       getPdfs(chapter_id)
-
     } catch (error) {
       console.error('Upload error:', error)
       alert('Failed to upload files.')

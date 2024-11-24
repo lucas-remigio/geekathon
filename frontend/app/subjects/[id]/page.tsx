@@ -27,7 +27,7 @@ import { UserNav } from '@/components/user-nav'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { Button } from '@/components/ui/button'
 import UploadPdfModal from './UploadPdfModal'
-import PopUp from '@/components/popup';
+import PopUp from '@/components/popup'
 
 interface responsePdfs {
   chapter_id: number
@@ -168,11 +168,11 @@ export default function SubjectDetailPage() {
     setOpenAccordionIndex(openAccordionIndex === index ? null : index)
   }
 
-  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [isPopupOpen, setIsPopupOpen] = useState(false)
 
   const togglePopup = () => {
-    setIsPopupOpen(!isPopupOpen);
-  };
+    setIsPopupOpen(!isPopupOpen)
+  }
 
   return (
     <div className='hidden flex-col md:flex'>
@@ -291,7 +291,7 @@ export default function SubjectDetailPage() {
                                 id='btn-upload'
                                 onClick={event => {
                                   event.stopPropagation()
-                                  handleOpenModal(index)
+                                  handleOpenModal(chapter.id)
                                 }}
                               >
                                 Open Upload Modal
@@ -317,13 +317,21 @@ export default function SubjectDetailPage() {
                                 </svg>
                                 Test
                               </Button>
-                              <Button onClick={(event) => {
-                                event.stopPropagation();
-                                togglePopup();
-                              }} className='btn'>
+                              <Button
+                                onClick={event => {
+                                  event.stopPropagation()
+                                  togglePopup()
+                                }}
+                                className='btn'
+                              >
                                 Summary
                               </Button>
-                              {isPopupOpen && <PopUp isOpen={isPopupOpen} onClose={togglePopup} />}
+                              {isPopupOpen && (
+                                <PopUp
+                                  isOpen={isPopupOpen}
+                                  onClose={togglePopup}
+                                />
+                              )}
                             </div>
                           </CardContent>
                         </AccordionContent>
@@ -343,6 +351,6 @@ export default function SubjectDetailPage() {
           getPdfs={getPdfs}
         />
       </div>
-    </div >
+    </div>
   )
 }
