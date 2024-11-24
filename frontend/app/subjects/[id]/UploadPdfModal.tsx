@@ -3,13 +3,14 @@
 import React, { ChangeEvent, FormEvent, useState } from 'react'
 import { Button } from '@/components/ui/button'
 
-interface UploadModalProps {
-  isOpen: boolean
-  onClose: () => void
-  getPdfs: () => void  // Accept getPdfs as a prop
+interface UploadPdfModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  chapter_id: number;  // Add chapter_id as a prop
+  getPdfs: (id: number) => void; // Expecting chapter_id type as number
 }
 
-export default function UploadPdfModal({ isOpen, onClose, getPdfs }: UploadModalProps) {
+export default function UploadPdfModal({ isOpen, onClose, chapter_id, getPdfs }: UploadPdfModalProps) {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]) // State to store the list of files
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -31,9 +32,10 @@ export default function UploadPdfModal({ isOpen, onClose, getPdfs }: UploadModal
     selectedFiles.forEach(file => {
       formData.append('files[]', file)
     })
+    formData.append('chapter_id', chapter_id.toString()) // Correctly append chapter_id
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/pdfs', {
+      const response = await fetch('http://localhost:8000/api/pdfs', {
         method: 'POST',
         body: formData
       })
@@ -47,7 +49,7 @@ export default function UploadPdfModal({ isOpen, onClose, getPdfs }: UploadModal
       alert('Files uploaded successfully!')
 
       // Fetch the PDFs again after upload is successful
-      getPdfs()
+      getPdfs(chapter_id)
 
     } catch (error) {
       console.error('Upload error:', error)

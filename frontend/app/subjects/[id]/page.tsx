@@ -52,6 +52,7 @@ export default function SubjectDetailPage() {
   const [pdfs, setPdfs] = useState<responsePdfs[]>([])
   const [isLoadingPdfs, setIsLoadingPdfs] = useState(true)
   const [isLoadingChapters, setIsLoadingChapters] = useState(true)
+  const [selectedChapterId, setSelectedChapterId] = useState(0)
   const [pdfsByChapter, setPdfsByChapter] = useState<any>({})
   const { id } = useParams()
 
@@ -67,9 +68,12 @@ export default function SubjectDetailPage() {
     router.push(`${currentPath}/test`)
   }
 
-  const handleOpenModal = () => {
-    setIsModalOpen(true)
+  const handleOpenModal = (chapter_id: number) => {
+    setIsModalOpen(true);
+    // Pass chapter_id to modal
+    setSelectedChapterId(chapter_id);
   }
+  
 
   const handleCloseModal = () => {
     setIsModalOpen(false)
@@ -130,7 +134,8 @@ export default function SubjectDetailPage() {
     }
   }
 
-  const handleDownload = async (pdf: any) => {
+  const handleDownload = async (pdf: any, event: React.MouseEvent) => {
+    event.stopPropagation();
     try {
       const response = await fetch(`http://localhost:8000/api/pdfs/${pdf.id}`)
       if (!response.ok) {
@@ -240,7 +245,7 @@ export default function SubjectDetailPage() {
                                         key={pdfIndex}
                                         className='carousel-item max-w-sm flex-grow pl-2 md:basis-1/3 md:pl-4 lg:basis-1/3'
                                         style={{ maxWidth: '12rem' }}
-                                        onClick={() => handleDownload(pdf)}
+                                        onClick={(event) => handleDownload(pdf, event)}
                                       >
                                         <div className='p-1'>
                                           <Card>
@@ -274,11 +279,11 @@ export default function SubjectDetailPage() {
                               )}
                             </Carousel>
                             <div className='mt-4 flex justify-start space-x-4'>
-                              <Button id='btn-upload' onClick={handleOpenModal}>
+                              <Button id='btn-upload' onClick={(event) => { event.stopPropagation(); handleOpenModal(index); }}>
                                 Open Upload Modal
                               </Button>
                               <Button
-                                onClick={handleRedirect}
+                                onClick={(event) => { event.stopPropagation(); handleRedirect(); }}
                                 className='flex items-center'
                               >
                                 <svg
@@ -310,9 +315,8 @@ export default function SubjectDetailPage() {
         <UploadPdfModal
           isOpen={isModalOpen}
           onClose={handleCloseModal}
-          getPdfs={function (): void {
-            throw new Error('Function not implemented.')
-          }}
+          chapter_id={selectedChapterId}
+          getPdfs={getPdfs}
         />
       </div>
     </div>

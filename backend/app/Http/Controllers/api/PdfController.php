@@ -34,7 +34,6 @@ class PdfController extends Controller
         if (!$pdf) {
             return response()->json(['message' => 'Pdf not found'], 404);
         }
-
         // Get everything after the first '_'
         $fileName = substr($pdf->file_name, strpos($pdf->file_name, '_') + 1);
 
