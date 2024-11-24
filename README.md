@@ -65,4 +65,78 @@ Have feedback, suggestions, or collaboration ideas? We'd love to hear from you!
 
 ---
 
+---
+
+## 📦 How to Run the Project
+
+### 1. **Clone the Repository**
+```
+git clone https://github.com/lucas-remigio/geekathon
+cd geekathon
+```
+
+---
+
+### 2. **Frontend Setup**
+
+Navigate to the `frontend` directory and install dependencies:
+```
+cd frontend
+npm install
+```
+
+Start the development server:
+```
+npm run dev
+```
+
+Frontend runs on `http://localhost:3000`.
+
+---
+
+### 3. **Backend Setup**
+
+Navigate to the `backend` directory and install dependencies:
+```
+cd backend
+composer install
+```
+
+Create the `.env` file:
+```
+cp .env.example .env
+```
+
+Set up the database and environment variables in `.env`:
+- **Database Configurations**:
+  - `DB_CONNECTION=mysql`
+  - `DB_HOST=127.0.0.1`
+  - `DB_PORT=3306`
+  - `DB_DATABASE=geekathon`
+  - `DB_USERNAME=root`
+  - `DB_PASSWORD=`
+
+Generate the application key:
+```
+php artisan key:generate
+```
+
+Run database migrations:
+```
+php artisan migrate
+```
+
+Run database seeder:
+```
+php artisan db:seed
+```
+
+Start the Laravel server:
+```
+php artisan serve
+```
+
+Backend runs on `http://127.0.0.1:8000`.
+
+
 **SubjectMate** - *Transforming Education!* 🎓
