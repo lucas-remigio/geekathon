@@ -17,6 +17,7 @@ const PopUp: React.FC<PopUpProps> = ({ isOpen, onClose }) => {
     const [loading, setLoading] = useState(false);
     const [progress, setProgress] = useState(0);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const [isGenerating, setIsGenerating] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
@@ -63,13 +64,15 @@ const PopUp: React.FC<PopUpProps> = ({ isOpen, onClose }) => {
     };
 
     const generateSummaries = async (number: number) => {
+        if (isGenerating) return; // Evita duplicar requests
+        setIsGenerating(true);
         setLoading(true);
         try {
             const pdfs = await fetchPDFs();
             if (!pdfs.length) {
                 throw new Error('No PDFs found');
             }
-            const pdf_ids = pdfs.map((pdf: { id: number }) => pdf.id); // Definindo o tipo do parâmetro 'pdf'
+            const pdf_ids = pdfs.map((pdf: { id: number }) => pdf.id);
             const response = await fetch('http://localhost:8000/api/generate-summaries', {
                 method: 'POST',
                 headers: {
@@ -89,6 +92,7 @@ const PopUp: React.FC<PopUpProps> = ({ isOpen, onClose }) => {
             console.error('Error fetching text:', error);
         } finally {
             setLoading(false);
+            setIsGenerating(false);
         }
     };
 
@@ -129,7 +133,9 @@ const PopUp: React.FC<PopUpProps> = ({ isOpen, onClose }) => {
 
     return (
         <div className="popup-overlay" onClick={handleOverlayClick}>
-            <div className="popup-content" style={{ pointerEvents: loading ? 'none' : 'auto' }}>
+            <div className="popup-content"
+                style={{ pointerEvents: loading ? 'none' : 'auto' }}
+                onClick={(event) => event.stopPropagation()}>
                 <div className="flex justify-between mb-4">
                     <Button className="mr-2" onClick={() => generateSummaries(1)}>Short Summary</Button>
                     <Button className="mr-2" onClick={() => generateSummaries(2)}>Summary by Topics</Button>

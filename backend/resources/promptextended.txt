@@ -1,1 +1,1 @@
-Considering the text below give me a short summary of its content:
+Considering the text below give me a summary of its content:

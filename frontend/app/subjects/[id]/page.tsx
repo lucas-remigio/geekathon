@@ -74,10 +74,6 @@ export default function SubjectDetailPage() {
     // Pass chapter_id to modal
     setSelectedChapterId(chapter_id)
   }
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
 
   const handleCloseModal = () => {
     setIsModalOpen(false)
@@ -177,6 +173,7 @@ export default function SubjectDetailPage() {
   const togglePopup = () => {
     setIsPopupOpen(!isPopupOpen);
   };
+
 
   return (
     <div className='hidden flex-col md:flex'>
