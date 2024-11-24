@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Aws\Bedrock\BedrockClient;
 use App\Models\Pdf;
 use Smalot\PdfParser\Parser;
+use App\Models\User;
 
 use Aws\BedrockRuntime\BedrockRuntimeClient;
 
@@ -31,9 +32,15 @@ class AwsController extends Controller
 
         // Validate the incoming request
         $validated = $request->validate([
-            'prompt' => 'required|string',
             'number' => 'required|integer',
+            'pdf_ids' => 'required|array',
+            'pdf_ids.*' => 'integer|exists:pdfs,id',
         ]);
+
+        // Fetch the PDFs from the database
+        $pdfs = Pdf::whereIn('id', $validated['pdf_ids'])->get();
+
+        $pdfParser = new Parser();
 
         switch($validated['number']) {
             case 1:
@@ -49,15 +56,33 @@ class AwsController extends Controller
                 $promptFilePath = base_path('resources/promptbrainrot.txt');
                 break;
             default:
-                return response()->json(['error' => 'Invalid prompt value'], 400);
+                return response()->json(['error' => 'Invalid summary type'], 400);
         }
 
-        if (!file_exists($promptFilePath)) {
-            return response()->json(['error' => 'Prompt file not found'], 404);
-        }
-
+        // Load the prompt content from the file
         $prompt = file_get_contents($promptFilePath);
 
+        $pdfsContent = "";
+
+        // Loop through each PDF and read its content
+        foreach ($pdfs as $pdf) {
+            $filePath = storage_path("app/private/{$pdf->file_path}"); // Adjust if your files are stored elsewhere
+
+            if (!file_exists($filePath)) {
+                return response()->json(['error' => "File not found", 'filePath' => $filePath], 404);
+            }
+
+            // Parse the PDF
+            $pdfDocument = $pdfParser->parseFile($filePath);
+
+            // Extract text from the PDF
+            $pdfContent = $pdfDocument->getText();
+
+            // Append the extracted text to the overall content
+            $pdfsContent .= $pdfContent;
+        }
+
+        $promptToSend = $pdfsContent . "\n" . $prompt;
         try {
 
             // Call Amazon Bedrock for Llama model inference
@@ -71,7 +96,7 @@ class AwsController extends Controller
                     'messages' => [
                         [
                             'role' => 'user',
-                            'content' => $prompt // Use the validated input as the content
+                            'content' => $promptToSend // Use the validated input as the content
                         ]
                     ],
                 ]),
@@ -89,6 +114,7 @@ class AwsController extends Controller
                 'message' => $e->getMessage(),
             ], 500);
         }
+
     }
 
     public function generateTest(Request $request)
@@ -298,12 +324,15 @@ class AwsController extends Controller
                 ], 500);
             }
 
-            // update user xp count
-            $user = auth()->user();
+            // ufind the user by id 1
+            $user = User::find(1);
 
             // calculate xp based on the grade
             $xp = $decodedContent["grade"] * 1;
             $user->xp += $xp;
+
+
+            $user->save();
 
 
 
@@ -409,18 +438,19 @@ class AwsController extends Controller
                 ], 500);
             }
 
-            // update user xp count
-            $user = auth()->user();
+            // ufind the user by id 1
+            $user = User::find(1);
 
-            // calculate xp based on the grade
-            $xp = 0;
-            foreach ($results as $result) {
-                if ($result['isCorrect']) {
-                    $xp += 10;
-                }
-            }
+            // calculate xp based on the amount of correct guesses
+            $numberOfCorrectGuesses = count(array_filter($results, function ($result) {
+                return $result['isCorrect'];
+            }));
+
+            $xp = $numberOfCorrectGuesses * 1;
 
             $user->xp += $xp;
+            // save the xp
+            $user->save();
 
             return response()->json([
                 'success' => true,
