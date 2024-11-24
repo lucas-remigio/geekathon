@@ -63,10 +63,16 @@ const PopUp: React.FC<PopUpProps> = ({ isOpen, onClose }) => {
         }
     };
 
+    const lastGeneratedNumber = useRef<number | null>(null);
     const generateSummaries = async (number: number) => {
-        if (isGenerating) return; // Evita duplicar requests
+        if (isGenerating || lastGeneratedNumber.current === number) {
+            console.log('Already generating or same request, skipping');
+            return; // Evita duplicar requests
+        }
         setIsGenerating(true);
         setLoading(true);
+        lastGeneratedNumber.current = number;
+        console.log(`Starting to generate summaries of type: ${number}`);
         try {
             const pdfs = await fetchPDFs();
             if (!pdfs.length) {
@@ -93,6 +99,7 @@ const PopUp: React.FC<PopUpProps> = ({ isOpen, onClose }) => {
         } finally {
             setLoading(false);
             setIsGenerating(false);
+            console.log('Finished generating summaries');
         }
     };
 
