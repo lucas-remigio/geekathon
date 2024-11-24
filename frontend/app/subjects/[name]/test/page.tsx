@@ -1,6 +1,7 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useState, useEffect } from 'react'
 
 // Define interfaces for data structure
@@ -34,6 +35,7 @@ export interface EvaluationResponse {
   success: boolean
   grade: string
   feedback: string
+  xp: number
 }
 
 // Type for feedback returned from the API for each question
@@ -41,6 +43,22 @@ export interface QuestionFeedback {
   id: number // The ID of the question
   grade: 'correct' | 'incorrect' // Whether the answer was correct or not
   feedback: string // Feedback message for the question
+}
+
+interface SubmitMcqResults {
+  success: boolean
+  feedback: Feedback
+  xp: number
+}
+
+interface Feedback {
+  results: Result[]
+}
+
+interface Result {
+  id: number
+  grade: string
+  feedback: string
 }
 
 // Extend MultipleChoiceQuestion to include feedback and grade
@@ -55,9 +73,12 @@ export default function QuizPage() {
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({}) // State to store user answers
   const [evaluationResult, setEvaluationResult] =
     useState<EvaluationResponse | null>(null)
-  const [mcqResults, setMcqResults] = useState<QuestionFeedback[]>([])
+  const [mcqResults, setMcqResults] = useState<Result[]>()
+  const [xp, setXp] = useState<number>(0)
+
   useEffect(() => {
-    let isCalled = false // Add a flag to track whether the effect has already been executed
+    let isMounted = true // Flag to track if the component is still mounted
+    let isCalled = false // Flag to track whether the fetch function has been executed
 
     const fetchQuizData = async (): Promise<void> => {
       if (isCalled) return // Prevent duplicate calls
@@ -78,27 +99,28 @@ export default function QuizPage() {
           }
         )
 
-        // if quiz data is already fill, ignore the response of the second request
-        if (quizData) return
-
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`)
         }
 
         const data = await response.json() // Typed response
-
-        if (data.success) {
-          setQuizData(data.data) // Set fetched data
-        }
+        setQuizData(data.data) // Set fetched data
       } catch (error) {
         console.error('Error fetching quiz data:', error)
       } finally {
-        setLoading(false)
+        if (isMounted) {
+          setLoading(false) // Only update loading if the component is mounted
+        }
       }
     }
 
     fetchQuizData()
-  }, [])
+
+    // Cleanup function to avoid updating state after the component is unmounted
+    return () => {
+      isMounted = false
+    }
+  }, []) // Depend on `quizData` to ensure it doesn't re-fetch once data is loaded
 
   const handleAnswerChange = (questionId: string, answer: string): void => {
     setUserAnswers(prevAnswers => ({
@@ -132,8 +154,11 @@ export default function QuizPage() {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
-      const data = await response.json()
+      const data: EvaluationResponse = await response.json()
       console.log('Extensive Question Evaluation Response:', data)
+
+      setXp(xp + data.xp)
+
       setEvaluationResult(data)
     } catch (error) {
       console.error('Error submitting the extensive question:', error)
@@ -144,6 +169,8 @@ export default function QuizPage() {
     try {
       // Execute both submissions concurrently
       await Promise.all([handleSubmitMultipleChoice(), handleSubmitExtensive()])
+
+      console.log('XP Updated:', xp)
 
       console.log('Test submission completed successfully!')
     } catch (error) {
@@ -195,8 +222,11 @@ export default function QuizPage() {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
-      const data = await response.json()
+      const data: SubmitMcqResults = await response.json()
       console.log('MCQ Results Submission Response:', data)
+
+      // get current xp
+      setXp(xp + data.xp)
 
       if (data.success) {
         // Store results in the new state
@@ -225,7 +255,7 @@ export default function QuizPage() {
       <div className='mb-6'>
         <h2 className='text-xl font-semibold'>Multiple Choice Questions</h2>
         {quizData.multipleChoiceQuestions.map(question => {
-          const result = mcqResults.find(res => res.id === question.id) // Find result by ID
+          const result = mcqResults?.find(res => res.id === question.id) // Safely access mcqResults
 
           return (
             <div key={question.id} className='mb-4 rounded border p-4'>
@@ -303,6 +333,23 @@ export default function QuizPage() {
             }
           ></textarea>
         </div>
+      </div>
+
+      <div className='mt-6 flex justify-center'>
+        {xp > 0 && (
+          <Card className='w-full max-w-sm rounded-lg border border-gray-200 bg-gradient-to-r from-green-100 to-green-50 shadow-xl'>
+            <CardHeader>
+              <CardTitle className='text-center text-3xl font-bold text-green-800'>
+                XP Earned 🎉
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className='flex items-center justify-center py-6'>
+                <p className='text-5xl font-extrabold text-green-600'>{xp}</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       <div className='mt-6 flex justify-end'>

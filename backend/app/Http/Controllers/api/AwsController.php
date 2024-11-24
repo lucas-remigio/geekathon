@@ -347,6 +347,7 @@ class AwsController extends Controller
                 'success' => true,
                 'grade' => $decodedContent["grade"],
                 'feedback' => $decodedContent["feedback"],
+                'xp' => $xp,
             ]);
 
         } catch (\Exception $e) {
@@ -462,6 +463,7 @@ class AwsController extends Controller
             return response()->json([
                 'success' => true,
                 'feedback' => $decodedContent, // Return AI feedback directly
+                'xp' => $xp,
             ]);
 
         } catch (\Exception $e) {

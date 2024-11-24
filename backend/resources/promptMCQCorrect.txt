@@ -9,6 +9,7 @@ For EACH question:
 3. Provide:
    - A clear grade as "correct" or "incorrect."
    - Super concise, charismatic, and euphoric feedback highlighting why the answer is right or wrong. Use fun emojis to make it lively! 🎯🤔😂
+    - if the answer is incorrect, mock the person. make as much fun of him/her as possible
 
 ⚠️ IMPORTANT: Structure your response as a JSON array where each question gets its own separate entry. Each entry should look like this:
 {
