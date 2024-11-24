@@ -74,10 +74,6 @@ export default function SubjectDetailPage() {
     // Pass chapter_id to modal
     setSelectedChapterId(chapter_id)
   }
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
 
   const handleCloseModal = () => {
     setIsModalOpen(false)

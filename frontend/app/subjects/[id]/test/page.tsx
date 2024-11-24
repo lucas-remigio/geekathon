@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 
 // Define interfaces for data structure
@@ -76,6 +77,10 @@ export default function QuizPage() {
     useState<EvaluationResponse | null>(null)
   const [mcqResults, setMcqResults] = useState<Result[]>([])
   const [xp, setXp] = useState<number>(0)
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
+  const [isSubmitted, setIsSubmitted] = useState<boolean>(false)
+
+  const router = useRouter()
 
   useEffect(() => {
     let isCalled = false // Add a flag to track whether the effect has already been executed
@@ -171,6 +176,7 @@ export default function QuizPage() {
   }
 
   const handleSubmit = async (): Promise<void> => {
+    setIsSubmitting(true) // Define o estado para verdadeiro ao submeter
     try {
       // Execute both submissions concurrently
       await Promise.all([handleSubmitMultipleChoice(), handleSubmitExtensive()])
@@ -180,6 +186,9 @@ export default function QuizPage() {
       console.log('Test submission completed successfully!')
     } catch (error) {
       console.error('Error submitting the test:', error)
+    } finally {
+      setIsSubmitting(false)
+      setIsSubmitted(true)
     }
   }
 
@@ -342,7 +351,7 @@ export default function QuizPage() {
       </div>
 
       <div className='mt-6 flex justify-center'>
-        {xp > 0 && (
+        {isSubmitted && xp > 0 && (
           <Card className='w-full max-w-sm rounded-lg border border-gray-200 bg-gradient-to-r from-green-100 to-green-50 shadow-xl'>
             <CardHeader>
               <CardTitle className='text-center text-3xl font-bold text-green-800'>
@@ -359,15 +368,34 @@ export default function QuizPage() {
       </div>
 
       <div className='mt-6 flex justify-end'>
-        <Button
-          onClick={() => {
-            // Replace this logic with your submit function
-            handleSubmit()
-          }}
-          className='rounded bg-blue-600 px-6 py-2 text-white hover:bg-blue-700'
-        >
-          Submit Test
-        </Button>
+        {isSubmitted ? (
+          <Button
+            onClick={() => {
+              const currentPath = window.location.pathname // '/subjects/1/test'
+              const parentPath = currentPath.split('/').slice(0, 3).join('/') // '/subjects/1'
+              router.push(parentPath)
+            }}
+            className='rounded bg-green-600 px-6 py-2 text-white hover:bg-green-700'
+          >
+            Go Back
+          </Button>
+        ) : (
+          <Button
+            onClick={handleSubmit}
+            disabled={isSubmitting || isSubmitted} // Disable the button if submitting or already submitted
+            className={`rounded px-6 py-2 text-white ${
+              isSubmitting || isSubmitted
+                ? 'bg-gray-500'
+                : 'bg-blue-600 hover:bg-blue-700'
+            }`}
+          >
+            {isSubmitting
+              ? 'Submitting...'
+              : isSubmitted
+                ? 'Submitted'
+                : 'Submit Test'}
+          </Button>
+        )}
       </div>
     </div>
   )
