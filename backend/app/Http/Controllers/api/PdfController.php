@@ -88,4 +88,19 @@ class PdfController extends Controller
             'files' => $uploadedFiles,
         ]);
     }
+
+    public function destroy(Request $request, $id)
+    {
+        $pdf = Pdf::find($id);
+
+        if (!$pdf) {
+            return response()->json(['message' => 'Pdf not found'], 404);
+        }
+        
+        $pdf->delete();
+
+        Storage::delete($pdf->file_path);
+
+        return response()->json(['message' => 'Pdf deleted']);
+    }
 }

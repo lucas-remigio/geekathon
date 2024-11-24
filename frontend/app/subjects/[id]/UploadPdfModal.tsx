@@ -7,7 +7,7 @@ interface UploadPdfModalProps {
   isOpen: boolean
   onClose: () => void
   chapter_id: number // Add chapter_id as a prop
-  subjectId: number
+  subjectId: any,
   getPdfs: (id: number) => void // Expecting chapter_id type as number
 }
 
