@@ -15,6 +15,7 @@ class Chapter extends Model
 
     protected $fillable = [
         'name',
+        'subject_id'
     ];
 
     public function pdfs()

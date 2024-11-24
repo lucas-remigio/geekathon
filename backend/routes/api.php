@@ -12,6 +12,7 @@ Route::get('/pdfs', [PdfController::class, 'index']);
 Route::get('/pdfs/{id}', [PdfController::class, 'show']);
 Route::get('/subjects', [SubjectController::class, 'index']);
 Route::get('/subjects/{id}/chapters', [SubjectController::class, 'getChapters']);
+Route::get('/subjects/{id}/chapters/pdfs', [SubjectController::class, 'getPdfsFromChapters']);
 Route::post('/generate-test', [AwsController::class, 'generateTest']);
 Route::post('/correct-answer', [AwsController::class, 'correctExtensiveQuestion']);
 Route::post('/generate-summaries', [AwsController::class, 'generateSummaries']);

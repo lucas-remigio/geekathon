@@ -36,4 +36,29 @@ class SubjectController extends Controller
 
         return response()->json($chapters);
     }
+
+    public function getPdfsFromChapters(Request $request, $id)
+    {
+        $subject = Subject::find($id);
+    
+        if (!$subject) {
+            return response()->json(['message' => 'Subject not found'], 404);
+        }
+    
+        $chapters = Chapter::with('pdfs')->where('subject_id', $id)->get();
+    
+        $result = [];
+    
+        foreach ($chapters as $chapter) {
+            $chapterData = [
+                'chapter_id' => $chapter->id,
+                'pdfs' => $chapter->pdfs, 
+            ];
+            
+            $result[] = $chapterData;
+        }
+    
+        return response()->json($result);
+    }
+    
 }

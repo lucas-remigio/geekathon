@@ -16,6 +16,7 @@ class Pdf extends Model
         'chapter_id',
         'file_name',
         'file_path',
+        'chapter_id'
     ];
 
     public function chapter()

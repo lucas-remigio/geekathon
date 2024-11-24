@@ -1,35 +1,49 @@
-import { Metadata } from 'next'
-import Image from 'next/image'
+'use client';
 
-import Link from "next/link"; // Import Link from Next.js
-
-  const subjects = [
-    { name: "AI", revenue: "$45,231.89", growth: "+20.1% from last month" },
-    { name: "Math", revenue: "+2350", growth: "+180.1% from last month" },
-    { name: "Science", revenue: "+12,234", growth: "+19% from last month" },
-    { name: "History", revenue: "+12,234", growth: "+19% from last month" },
-  ];
-
-import { Button } from '@/components/ui/button'
+import { useEffect, useState } from 'react';
+import Link from "next/link";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle
-} from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+} from '@/components/ui/card';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
 
-import { MainNav } from '@/components/main-nav'
-import { UserNav } from '@/components/user-nav'
-import { ThemeToggle } from '@/components/theme-toggle'
+import { MainNav } from '@/components/main-nav';
+import { UserNav } from '@/components/user-nav';
+import { ThemeToggle } from '@/components/theme-toggle';
 
-export const metadata: Metadata = {
-  title: 'Subjects',
-  description: 'Page where subjects are displayed'
-}
+// Importing the arrow icon from react-icons
+import { FaArrowRight } from 'react-icons/fa';
 
 export default function SubjectsPage() {
+
+  const isClient = typeof window !== 'undefined';
+
+  const [subjects, setSubjects] = useState<any[]>([]); // state to store fetched subjects
+  const [loading, setLoading] = useState<boolean>(true); // loading state
+
+  const getSubjects = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/api/subjects');
+      const data = await response.json();
+      setSubjects(data); // set the fetched subjects in state
+    } catch (error) {
+      console.error('Error fetching subjects:', error);
+    } finally {
+      setLoading(false); // set loading to false after fetching data
+    }
+  }
+
+  // Fetch subjects from API on component mount
+  useEffect(() => {
+    if (isClient) {
+      document.title = 'Subjects';
+    }
+    getSubjects();
+  }, [isClient]);
+
   return (
     <>
       <div className='hidden flex-col md:flex'>
@@ -44,44 +58,50 @@ export default function SubjectsPage() {
         </div>
         <div className='flex-1 space-y-4 p-8 pt-6'>
           <Tabs defaultValue='subjects' className='space-y-4'>
-            {/* <TabsList>
-              <TabsTrigger value='subjects'>Subjects</TabsTrigger>
-              <TabsTrigger value='history' disabled>
-                History
-              </TabsTrigger>
-            </TabsList> */}
             <TabsContent value='subjects' className='space-y-4'>
-              <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
-              {subjects.map((subject, index) => (
-              <Link key={index} href={`/subjects/${subject.name.toLowerCase()}`} passHref>
-                <Card className="cursor-pointer hover:shadow-lg transition-shadow">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">{subject.name}</CardTitle>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      className="h-4 w-4 text-muted-foreground"
+              {loading ? (
+                <div className="flex justify-center items-center h-32">
+                  <div
+                    className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-t-transparent border-e-transparent align-[-0.125em] text-surface motion-reduce:animate-[spin_1.5s_linear_infinite] dark:text-white"
+                    role="status"
+                  >
+                    <span
+                      className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]"
                     >
-                      <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                    </svg>
-                  </CardHeader>
-                  <CardContent>   
-                    <div className="text-2xl font-bold">{subject.revenue}</div>
-                    <p className="text-xs text-muted-foreground">{subject.growth}</p>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-              </div>
+                      Loading...
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {subjects.map((subject: any, index: number) => (
+                    <Link
+                      key={index}
+                      href={{
+                        pathname: `/subjects/${subject.id}`
+                      }}
+                      passHref
+                    >
+                      <Card className="cursor-pointer hover:bg-stone-100 dark:hover:bg-zinc-900 transition-colors duration-300 ease-in-out p-4 rounded-lg relative">
+                        <div className="absolute right-2 mr-2 text-l text-black dark:text-white">
+                          <FaArrowRight />
+                        </div>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                          <CardTitle className="text-xl font-bold">{subject.name}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-2xl font-bold"></div>
+                          <p className="text-xs text-muted-foreground">{subject.description}</p>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </TabsContent>
           </Tabs>
         </div>
       </div>
     </>
-  )
+  );
 }
