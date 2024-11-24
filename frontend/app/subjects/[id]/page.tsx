@@ -93,6 +93,22 @@ export default function SubjectDetailPage() {
     }
   }
 
+  const deletePdf = async (id: any, subject_id: any) => {
+    try {
+      const response = await fetch(
+        `http://localhost:8000/api/pdfs/${id}`,
+        {
+          method: 'Delete',
+        }
+      )
+      await getPdfs(subject_id)
+      alert('File deleted successfully!')
+    } catch (error) {
+      alert('Failed to delete files!')
+      console.error('Error fetching chapters:', error)
+    }
+  }
+
   const getPdfs = async (id: any) => {
     try {
       const response = await fetch(
@@ -280,6 +296,17 @@ export default function SubjectDetailPage() {
                                               </div>
                                             </CardContent>
                                           </Card>
+                                          <div className='flex justify-center p-2'>
+                                              <button
+                                                className='rounded bg-red-500 px-4 py-2 text-white hover:bg-red-400 focus:outline-none'
+                                                onClick={event => {
+                                                  event.stopPropagation();
+                                                  deletePdf(pdf.id, id);
+                                                }}
+                                              >
+                                                Delete
+                                              </button>
+                                            </div>
                                         </div>
                                       </CarouselItem>
                                     )
@@ -295,28 +322,7 @@ export default function SubjectDetailPage() {
                                   handleOpenModal(chapter.id)
                                 }}
                               >
-                                Open Upload Modal
-                              </Button>
-                              <Button
-                                onClick={event => {
-                                  event.stopPropagation()
-                                  handleRedirect(chapter.id)
-                                }}
-                                className='flex items-center'
-                              >
-                                <svg
-                                  xmlns='http://www.w3.org/2000/svg'
-                                  viewBox='0 0 24 24'
-                                  fill='none'
-                                  stroke='currentColor'
-                                  strokeLinecap='round'
-                                  strokeLinejoin='round'
-                                  strokeWidth='2'
-                                  className='mr-2 h-4 w-4'
-                                >
-                                  <path d='M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6' />
-                                </svg>
-                                Test
+                                Upload Content
                               </Button>
                               <Button
                                 onClick={event => {
@@ -333,6 +339,15 @@ export default function SubjectDetailPage() {
                                   onClose={togglePopup}
                                 />
                               )}
+                                                            <Button
+                                onClick={event => {
+                                  event.stopPropagation()
+                                  handleRedirect(chapter.id)
+                                }}
+                                className='flex items-center'
+                              >
+                                Test
+                              </Button>
                             </div>
                           </CardContent>
                         </AccordionContent>

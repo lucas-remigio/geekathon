@@ -10,6 +10,7 @@ Route::post('/submit-mcq-results', [AwsController::class, 'correctMultipleChoice
 Route::post('/pdfs', [PdfController::class, 'upload']);
 Route::get('/pdfs', [PdfController::class, 'index']);
 Route::get('/pdfs/{id}', [PdfController::class, 'show']);
+Route::delete('/pdfs/{id}', [PdfController::class, 'destroy']);
 Route::get('/subjects', [SubjectController::class, 'index']);
 Route::get('/subjects/{id}/chapters', [SubjectController::class, 'getChapters']);
 Route::get('/subjects/{id}/chapters/pdfs', [SubjectController::class, 'getPdfsFromChapters']);
