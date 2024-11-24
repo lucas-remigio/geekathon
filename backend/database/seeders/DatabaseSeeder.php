@@ -52,8 +52,5 @@ class DatabaseSeeder extends Seeder
             'name' => 'Chapter 3 - The Turing Test and AI Intelligence',
             'subject_id' => 1,
         ]);
-        Pdf::factory()->create([
-            'chapter_id' => 1
-        ]);
     }
 }
