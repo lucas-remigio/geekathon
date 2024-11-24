@@ -128,13 +128,31 @@ class AwsController extends Controller
         // Force JSON response
         $request->headers->set('Accept', 'application/json');
 
-        // Validate the incoming request
-        $validated = $request->validate([
-            'pdf_ids' => 'required|array',
-            'pdf_ids.*' => 'integer|exists:pdfs,id', // Validate each ID exists in the 'pdfs' table
-        ]);
+        $chapterId = $request->query('chapterId');
 
-        $pdfs = Pdf::whereIn('id', $validated['pdf_ids'])->get();
+        if (!$chapterId) {
+            return response()->json([
+                'error' => 'chapterId is required.'
+            ], 400);
+        }
+
+        // Validate that chapterId is an integer
+        if (!is_numeric($chapterId)) {
+            return response()->json([
+                'error' => 'Invalid chapterId. It must be a number.'
+            ], 400);
+        }
+
+        // Retrieve all PDFs for the specified chapter ID
+        $pdfs = Pdf::where('chapter_id', $chapterId)->get();
+
+        // Check if PDFs exist for the given chapter ID
+        if ($pdfs->isEmpty()) {
+            return response()->json([
+                'error' => 'No PDFs found for the given chapter ID.',
+            ], 404);
+        }
+
         $pdfParser = new Parser();
 
         $promptFilePath = base_path('resources/prompt.txt');
@@ -178,7 +196,7 @@ class AwsController extends Controller
 
             // Call Amazon Bedrock for Llama model inference
             $response = $this->client->invokeModel([
-                'modelId' => 'mistral.mistral-large-2402-v1:0', // Adjust to match your model ID
+                'modelId' => 'mistral.mistral-large-2407-v1:0', // Adjust to match your model ID
                 'body' => json_encode([
                     'max_tokens' => 2048,
                     'top_p' => 1,
@@ -208,9 +226,29 @@ class AwsController extends Controller
 
             $contentJson = $responseBody['choices'][0]['message']['content'];
 
+            // Dynamically extract the JSON within the outer brackets
+            preg_match('/\{.*\}/s', $contentJson, $matches);
 
-            // Decode the extracted JSON string into an associative array
-            $decodedContent = json_decode($contentJson, true);
+            if (empty($matches)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to extract valid JSON content.',
+                ], 500);
+            }
+
+            $cleanedJson = $matches[0]; // Extracted JSON string
+
+            // Decode the cleaned JSON string into an associative array
+            $decodedContent = json_decode($cleanedJson, true);
+
+
+            // Check if decoding was successful
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to decode content JSON: ' . json_last_error_msg(),
+                ], 500);
+            }
 
             $labels = ['A', 'B', 'C', 'D'];
             foreach ($decodedContent['multipleChoiceQuestions'] as $index => &$question) {
@@ -241,7 +279,10 @@ class AwsController extends Controller
                 ],
             ];
 
-            return response()->json($customResponse);
+            ob_start();
+            $response = response()->json($customResponse);
+            ob_end_flush();
+            return $response;
 
         } catch (\Exception $e) {
             return response()->json([
