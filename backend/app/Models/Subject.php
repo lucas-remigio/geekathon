@@ -7,18 +7,18 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Chapter;
 
-class Pdf extends Model
+class Subject extends Model
 {
     use HasFactory, SoftDeletes;
     protected $dates = ['deleted_at'];
 
     protected $fillable = [
-        'file_name',
-        'file_path',
+        'name',
+        'description',
     ];
 
-    public function chapter()
+    public function chapters()
     {
-        return $this->belongsTo(Chapter::class, 'chapter_id', 'id');
+        return $this->hasMany(Chapter::class, 'subject_id', 'id');
     }
 }

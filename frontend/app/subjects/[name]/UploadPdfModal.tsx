@@ -6,9 +6,10 @@ import { Button } from '@/components/ui/button'
 interface UploadModalProps {
   isOpen: boolean
   onClose: () => void
+  getPdfs: () => void  // Accept getPdfs as a prop
 }
 
-export default function UploadPdfModal({ isOpen, onClose }: UploadModalProps) {
+export default function UploadPdfModal({ isOpen, onClose, getPdfs }: UploadModalProps) {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]) // State to store the list of files
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -44,6 +45,10 @@ export default function UploadPdfModal({ isOpen, onClose }: UploadModalProps) {
       const result = await response.json()
       console.log('Uploaded files:', result.files)
       alert('Files uploaded successfully!')
+
+      // Fetch the PDFs again after upload is successful
+      getPdfs()
+
     } catch (error) {
       console.error('Upload error:', error)
       alert('Failed to upload files.')

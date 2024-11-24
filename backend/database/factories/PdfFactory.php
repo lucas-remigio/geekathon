@@ -17,8 +17,11 @@ class PdfFactory extends Factory
     public function definition(): array
     {
         return [
-            'file_name' => fake()->name(),
-            'file_path' => 'private/upload/pdf.pdf'
+            'file_name' => time().'teste.pdf',
+            'file_path' => 'upload/teste.pdf',
+            'chapter_id' => function () {
+                return \App\Models\Chapter::inRandomOrder()->first()->id;
+            },
         ];
     }
 }

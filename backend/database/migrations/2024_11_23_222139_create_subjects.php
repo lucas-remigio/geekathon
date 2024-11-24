@@ -11,13 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('pdfs', function (Blueprint $table) {
+        Schema::create('subjects', function (Blueprint $table) {
             $table->id();
-            $table->string('file_name', 255);
-            $table->string('file_path', 255);
+            $table->string('name', 100);
+            $table->string('description', 300);
             $table->timestamps();
             $table->softDeletes();
         });
+
     }
 
     /**
@@ -25,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('pdf');
+        Schema::dropIfExists('subjects');
     }
 };
