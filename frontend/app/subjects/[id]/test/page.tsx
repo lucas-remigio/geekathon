@@ -1,6 +1,7 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useState, useEffect } from 'react'
 
 // Define interfaces for data structure
@@ -34,6 +35,8 @@ export interface EvaluationResponse {
   success: boolean
   grade: string
   feedback: string
+
+  xp: number
 }
 
 // Type for feedback returned from the API for each question
@@ -49,13 +52,31 @@ export interface ExtendedMultipleChoiceQuestion extends MultipleChoiceQuestion {
   grade?: 'correct' | 'incorrect' // Grade for the question
 }
 
+interface SubmitMcqResults {
+  success: boolean
+  feedback: Feedback
+  xp: number
+}
+
+interface Feedback {
+  results: Result[]
+}
+
+interface Result {
+  id: number
+  grade: string
+  feedback: string
+}
+
 export default function QuizPage() {
   const [quizData, setQuizData] = useState<QuizData | null>(null) // State to hold fetched data
   const [loading, setLoading] = useState<boolean>(true) // State to handle loading
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({}) // State to store user answers
   const [evaluationResult, setEvaluationResult] =
     useState<EvaluationResponse | null>(null)
-  const [mcqResults, setMcqResults] = useState<QuestionFeedback[]>([])
+  const [mcqResults, setMcqResults] = useState<Result[]>([])
+  const [xp, setXp] = useState<number>(0)
+
   useEffect(() => {
     let isCalled = false // Add a flag to track whether the effect has already been executed
 
@@ -64,17 +85,22 @@ export default function QuizPage() {
       isCalled = true
 
       try {
+        const urlParams = new URLSearchParams(window.location.search)
+        const chapterId = urlParams.get('chapterId')
+
+        if (!chapterId) {
+          console.error('chapterId is missing in the URL')
+          return
+        }
+
         const response = await fetch(
-          'http://127.0.0.1:8000/api/generate-test',
+          'http://127.0.0.1:8000/api/generate-test?chapterId=' + chapterId,
           {
-            method: 'POST',
+            method: 'GET',
             headers: {
               Accept: 'application/json',
               'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              pdf_ids: [3] // Replace with appropriate IDs as needed
-            })
+            }
           }
         )
 
@@ -132,7 +158,11 @@ export default function QuizPage() {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
-      const data = await response.json()
+      const data: EvaluationResponse = await response.json()
+
+      // Update the XP state to the current xp + the new xp
+      setXp(prevXp => prevXp + data.xp)
+
       console.log('Extensive Question Evaluation Response:', data)
       setEvaluationResult(data)
     } catch (error) {
@@ -144,6 +174,8 @@ export default function QuizPage() {
     try {
       // Execute both submissions concurrently
       await Promise.all([handleSubmitMultipleChoice(), handleSubmitExtensive()])
+
+      console.log('XP Updated:', xp)
 
       console.log('Test submission completed successfully!')
     } catch (error) {
@@ -195,7 +227,11 @@ export default function QuizPage() {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
-      const data = await response.json()
+      const data: SubmitMcqResults = await response.json()
+
+      // Update the XP state to the current xp + the new xp
+      setXp(prevXp => prevXp + data.xp)
+
       console.log('MCQ Results Submission Response:', data)
 
       if (data.success) {
@@ -303,6 +339,23 @@ export default function QuizPage() {
             }
           ></textarea>
         </div>
+      </div>
+
+      <div className='mt-6 flex justify-center'>
+        {xp > 0 && (
+          <Card className='w-full max-w-sm rounded-lg border border-gray-200 bg-gradient-to-r from-green-100 to-green-50 shadow-xl'>
+            <CardHeader>
+              <CardTitle className='text-center text-3xl font-bold text-green-800'>
+                XP Earned 🎉
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className='flex items-center justify-center py-6'>
+                <p className='text-5xl font-extrabold text-green-600'>{xp}</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       <div className='mt-6 flex justify-end'>
