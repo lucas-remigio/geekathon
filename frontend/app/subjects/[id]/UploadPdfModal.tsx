@@ -39,6 +39,8 @@ export default function UploadPdfModal({ isOpen, onClose, chapter_id, getPdfs }:
         method: 'POST',
         body: formData
       })
+      
+      console.log('Response:', response);
 
       if (!response.ok) {
         throw new Error('Failed to upload files')
