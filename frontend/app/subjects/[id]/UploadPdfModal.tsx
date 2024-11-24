@@ -82,19 +82,19 @@ export default function UploadPdfModal({
 
   return (
     <div
-      className='fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50'
+      className='fixed inset-0 z-50 flex items-center justify-center bg-black-500 bg-opacity-50'
       onClick={onClose} // Close modal when clicking on the overlay
     >
       <div
-        className='rounded-md bg-white p-6 shadow-lg'
-        onClick={e => e.stopPropagation()} // Prevent click events from propagating to the overlay
+        className='rounded-md bg-white dark:bg-zinc-800 p-6 shadow-lg border-solid dark:border-white'
+        onClick={e => e.stopPropagation()} // Prevents click events from propagating to the overlay
       >
         <h2 className='mb-4 text-lg font-bold'>Upload Files</h2>
         <form onSubmit={handleUpload}>
           <div className='mb-4'>
             <label
               htmlFor='file'
-              className='block text-sm font-medium text-gray-700'
+              className='block text-sm font-medium text-gray-700 dark:text-gray-300'
             >
               Select Files
             </label>
@@ -129,7 +129,7 @@ export default function UploadPdfModal({
                 ))}
               </ul>
             ) : (
-              <p className='text-sm text-gray-500'>No files selected.</p>
+              <p className='text-sm text-gray-500 dark:text-gray-300'>No files selected.</p>
             )}
           </div>
 

@@ -144,10 +144,10 @@ const PopUp: React.FC<PopUpProps> = ({ isOpen, onClose }) => {
                 style={{ pointerEvents: loading ? 'none' : 'auto' }}
                 onClick={(event) => event.stopPropagation()}>
                 <div className="flex justify-between mb-4">
-                    <Button className="mr-2" onClick={() => generateSummaries(1)}>Short Summary</Button>
-                    <Button className="mr-2" onClick={() => generateSummaries(2)}>Summary by Topics</Button>
-                    <Button className="mr-2" onClick={() => generateSummaries(3)}>Extended Summary</Button>
-                    <Button onClick={() => generateSummaries(4)}>Brain Rot Summary</Button>
+                    <Button className="mr-2 bg-black text-white" onClick={() => generateSummaries(1)}>Short Summary</Button>
+                    <Button className="mr-2 bg-black text-white" onClick={() => generateSummaries(2)}>Summary by Topics</Button>
+                    <Button className="mr-2 bg-black text-white" onClick={() => generateSummaries(3)}>Extended Summary</Button>
+                    <Button className = "bg-black text-white" onClick={() => generateSummaries(4)}>Brain Rot Summary</Button>
                 </div>
                 <div className="grid w-full gap-2">
                     {loading ? (
@@ -167,8 +167,8 @@ const PopUp: React.FC<PopUpProps> = ({ isOpen, onClose }) => {
                             </div>
                         </ScrollArea>
                     )}
-                    <Button onClick={handleDownload}>Download</Button>
-                </div>
+                    <Button className = "bg-black text-white" onClick={handleDownload}>Download</Button>
+                </div> 
             </div>
         </div>
     );
