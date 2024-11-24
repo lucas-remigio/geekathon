@@ -348,6 +348,7 @@ export default function SubjectDetailPage() {
           isOpen={isModalOpen}
           onClose={handleCloseModal}
           chapter_id={selectedChapterId}
+          subjectId={id}
           getPdfs={getPdfs}
         />
       </div>

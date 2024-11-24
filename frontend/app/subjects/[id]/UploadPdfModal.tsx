@@ -7,6 +7,7 @@ interface UploadPdfModalProps {
   isOpen: boolean
   onClose: () => void
   chapter_id: number // Add chapter_id as a prop
+  subjectId: number
   getPdfs: (id: number) => void // Expecting chapter_id type as number
 }
 
@@ -14,6 +15,7 @@ export default function UploadPdfModal({
   isOpen,
   onClose,
   chapter_id,
+  subjectId,
   getPdfs
 }: UploadPdfModalProps) {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]) // State to store the list of files
@@ -62,7 +64,7 @@ export default function UploadPdfModal({
       alert('Files uploaded successfully!')
 
       // Fetch the PDFs again after upload is successful
-      getPdfs(chapter_id)
+      getPdfs(subjectId)
     } catch (error) {
       console.error('Upload error:', error)
       alert('Failed to upload files.')
