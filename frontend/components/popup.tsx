@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { string } from 'zod';
 
 
 interface PopUpProps {
@@ -45,41 +46,49 @@ const PopUp: React.FC<PopUpProps> = ({ isOpen, onClose }) => {
         }
     };
 
-    const generateSummaries = (number: number) => {
-        console.log('Fetching data from the backend with number:', number);
+    const fetchPDFs = async (): Promise<any[]> => {
+        try {
+            const response = await fetch('http://127.0.0.1:8000/api/pdfs'); // Substitua pelo endpoint correto da sua API
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            console.log('Fetched PDFs:', data.pdfs);
+            return data || []; // Supondo que a resposta tenha um campo 'pdfs' com a lista de PDFs
+        } catch (error) {
+            console.error('Error fetching PDFs:', error);
+            return [];
+        }
+    };
+
+    const generateSummaries = async (number: number) => {
         setLoading(true);
-        fetch('http://localhost:8000/api/generate-summaries', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ prompt: 'Your prompt here', number }), // Envia o prompt como string e o número como inteiro
-        })
-            .then(response => {
-                console.log('Response status:', response.status);
-                if (!response.ok) {
-                    return response.json().then(err => {
-                        console.error('Error response:', err);
-                        throw new Error('Network response was not ok');
-                    });
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('API response data:', data);
-                if (data.choices) {
-                    setText(data.choices[0].message.content);
-                    console.log('Extracted text:', data.choices[0].message.content);
-                } else {
-                    console.error('Unexpected API response format:', data);
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching text:', error);
-            })
-            .finally(() => {
-                setLoading(false);
+        try {
+            const pdfs = await fetchPDFs();
+            if (!pdfs.length) {
+                throw new Error('No PDFs found');
+            }
+            const pdf_ids = pdfs.map((pdf: { id: number }) => pdf.id); // Definindo o tipo do parâmetro 'pdf'
+            const response = await fetch('http://localhost:8000/api/generate-summaries', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ number, pdf_ids }),
             });
+            const data = await response.json();
+            console.log('API response data:', data);
+            if (data.choices) {
+                setText(data.choices[0].message.content);
+                console.log('Extracted text:', data.choices[0].message.content);
+            } else {
+                console.error('Unexpected API response format:', data);
+            }
+        } catch (error) {
+            console.error('Error fetching text:', error);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {

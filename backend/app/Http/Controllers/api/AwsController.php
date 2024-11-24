@@ -38,9 +38,15 @@ class AwsController extends Controller
 
         // Validate the incoming request
         $validated = $request->validate([
-            'prompt' => 'required|string',
             'number' => 'required|integer',
+            'pdf_ids' => 'required|array',
+            'pdf_ids.*' => 'integer|exists:pdfs,id',
         ]);
+
+        // Fetch the PDFs from the database
+        $pdfs = Pdf::whereIn('id', $validated['pdf_ids'])->get();
+
+        $pdfParser = new Parser();
 
         switch($validated['number']) {
             case 1:
@@ -56,15 +62,33 @@ class AwsController extends Controller
                 $promptFilePath = base_path('resources/promptbrainrot.txt');
                 break;
             default:
-                return response()->json(['error' => 'Invalid prompt value'], 400);
+                return response()->json(['error' => 'Invalid summary type'], 400);
         }
 
-        if (!file_exists($promptFilePath)) {
-            return response()->json(['error' => 'Prompt file not found'], 404);
-        }
-
+        // Load the prompt content from the file
         $prompt = file_get_contents($promptFilePath);
 
+        $pdfsContent = "";
+
+        // Loop through each PDF and read its content
+        foreach ($pdfs as $pdf) {
+            $filePath = storage_path("app/private/{$pdf->file_path}"); // Adjust if your files are stored elsewhere
+
+            if (!file_exists($filePath)) {
+                return response()->json(['error' => "File not found", 'filePath' => $filePath], 404);
+            }
+
+            // Parse the PDF
+            $pdfDocument = $pdfParser->parseFile($filePath);
+
+            // Extract text from the PDF
+            $pdfContent = $pdfDocument->getText();
+
+            // Append the extracted text to the overall content
+            $pdfsContent .= $pdfContent;
+        }
+
+        $promptToSend = $pdfsContent . "\n" . $prompt;
         try {
 
             // Call Amazon Bedrock for Llama model inference
@@ -78,7 +102,7 @@ class AwsController extends Controller
                     'messages' => [
                         [
                             'role' => 'user',
-                            'content' => $prompt // Use the validated input as the content
+                            'content' => $promptToSend // Use the validated input as the content
                         ]
                     ],
                 ]),
@@ -96,6 +120,7 @@ class AwsController extends Controller
                 'message' => $e->getMessage(),
             ], 500);
         }
+
     }
 
     public function generateTest(Request $request)
