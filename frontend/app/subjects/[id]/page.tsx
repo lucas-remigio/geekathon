@@ -62,18 +62,17 @@ export default function SubjectDetailPage() {
   // Prevent SSR errors by ensuring router-dependent code runs on the client
   const isClient = typeof window !== 'undefined'
 
-  const handleRedirect = () => {
+  const handleRedirect = (chapterId: number) => {
     if (!isClient || !params) return
-    const currentPath = `/subjects/${params.name}`
-    router.push(`${currentPath}/test`)
+    const currentPath = `/subjects/${params.id}`
+    router.push(`${currentPath}/test?chapterId=${chapterId}`)
   }
 
   const handleOpenModal = (chapter_id: number) => {
-    setIsModalOpen(true);
+    setIsModalOpen(true)
     // Pass chapter_id to modal
-    setSelectedChapterId(chapter_id);
+    setSelectedChapterId(chapter_id)
   }
-  
 
   const handleCloseModal = () => {
     setIsModalOpen(false)
@@ -135,7 +134,7 @@ export default function SubjectDetailPage() {
   }
 
   const handleDownload = async (pdf: any, event: React.MouseEvent) => {
-    event.stopPropagation();
+    event.stopPropagation()
     try {
       const response = await fetch(`http://localhost:8000/api/pdfs/${pdf.id}`)
       if (!response.ok) {
@@ -245,7 +244,9 @@ export default function SubjectDetailPage() {
                                         key={pdfIndex}
                                         className='carousel-item max-w-sm flex-grow pl-2 md:basis-1/3 md:pl-4 lg:basis-1/3'
                                         style={{ maxWidth: '12rem' }}
-                                        onClick={(event) => handleDownload(pdf, event)}
+                                        onClick={event =>
+                                          handleDownload(pdf, event)
+                                        }
                                       >
                                         <div className='p-1'>
                                           <Card>
@@ -279,11 +280,20 @@ export default function SubjectDetailPage() {
                               )}
                             </Carousel>
                             <div className='mt-4 flex justify-start space-x-4'>
-                              <Button id='btn-upload' onClick={(event) => { event.stopPropagation(); handleOpenModal(index); }}>
+                              <Button
+                                id='btn-upload'
+                                onClick={event => {
+                                  event.stopPropagation()
+                                  handleOpenModal(index)
+                                }}
+                              >
                                 Open Upload Modal
                               </Button>
                               <Button
-                                onClick={(event) => { event.stopPropagation(); handleRedirect(); }}
+                                onClick={event => {
+                                  event.stopPropagation()
+                                  handleRedirect(chapter.id)
+                                }}
                                 className='flex items-center'
                               >
                                 <svg
