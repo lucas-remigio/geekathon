@@ -1,1 +1,1 @@
-Considering the text below give me a summary by topics of this text:
+Please provide a summary of the following text, organized by topics. Present each topic with a clear heading followed by a brief description of the key points related to that topic:

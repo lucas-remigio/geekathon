@@ -3,8 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Spinner } from "@/components/ui/spinner";
 import { string } from 'zod';
-
+import jsPDF from 'jspdf';
 
 interface PopUpProps {
     isOpen: boolean;
@@ -97,6 +98,33 @@ const PopUp: React.FC<PopUpProps> = ({ isOpen, onClose }) => {
         }
     };
 
+    const handleDownload = () => {
+        const doc = new jsPDF();
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const margin = 10;
+        const maxLineWidth = pageWidth - margin * 2;
+
+        // Adicionar título
+        const title = "SubjectsMate Summary";
+        doc.setFontSize(18);
+        doc.text(title, pageWidth / 2, margin, { align: 'center' });
+
+        // Adicionar uma linha abaixo do título
+        doc.setLineWidth(0.5);
+        doc.line(margin, margin + 10, pageWidth - margin, margin + 10);
+
+        // Adicionar o texto
+        doc.setFontSize(12);
+        const textLines = doc.splitTextToSize(text, maxLineWidth);
+        doc.text(textLines, margin, margin + 20); // Ajustar a posição do texto para ficar abaixo do título
+
+        doc.save('summary.pdf');
+    };
+
+    const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        setText(e.target.value);
+    };
+
     if (!isOpen) return null;
 
     return (
@@ -111,7 +139,7 @@ const PopUp: React.FC<PopUpProps> = ({ isOpen, onClose }) => {
                 <div className="grid w-full gap-2">
                     {loading ? (
                         <div className="loading-overlay">
-                            <Progress value={progress} />
+                            <Spinner />
                         </div>
                     ) : (
                         <ScrollArea style={{ maxHeight: '500px' }}>
@@ -119,14 +147,14 @@ const PopUp: React.FC<PopUpProps> = ({ isOpen, onClose }) => {
                                 <Textarea
                                     ref={textareaRef}
                                     value={text}
-                                    readOnly
+                                    onChange={handleTextChange}
                                     onInput={adjustTextareaHeight}
                                     style={{ height: 'auto', overflowY: 'auto' }}
                                 />
                             </div>
                         </ScrollArea>
                     )}
-                    <Button>Download</Button>
+                    <Button onClick={handleDownload}>Download</Button>
                 </div>
             </div>
         </div>
