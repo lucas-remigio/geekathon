@@ -4,6 +4,9 @@
 
 **SubjectMate** is an innovative educational platform created in **24 hours** during the Geekathon. It aims to empower **teachers**, **parents**, and **study helpers** to provide content that students can summarize in multiple ways and later test their skills through **AI-generated quizzes**. The platform motivates students to improve by awarding **XP points** based on their performance, making learning fun and rewarding.
 
+
+https://github.com/user-attachments/assets/351156e3-7b28-4a80-89fd-4bcef91d8209
+
 ---
 
 ## 🚀 Features
